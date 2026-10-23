@@ -46,6 +46,12 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 
 - Comments are minimal and to the point throughout the code.
 
+## Fonts
+
+- Manrope (variable, 200–800, no italic) through the Astro Fonts API with the Fontsource provider, configured in `astro.config.mjs`. Files are downloaded at build time and self-hosted from `/_astro/fonts/`.
+- Exposed as `--font-manrope`. Render `<Font cssVariable="--font-manrope" />` in the page `<head>` and preload only the subset the locale uses (`preload={[{ subset: "latin" }]}` for English).
+- No `@fontsource` packages or hand-written `@font-face` rules.
+
 ## Case studies
 
 - Work in progress lives in `drafts/` (or as `*.local.md`). A case study moves into `src/content/` and is committed only when it's finished and passes the content rules in `PLAN.local.md`.

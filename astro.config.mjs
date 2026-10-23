@@ -1,5 +1,17 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 
 // https://astro.build/config
-export default defineConfig({});
+export default defineConfig({
+  fonts: [
+    {
+      provider: fontProviders.fontsource(),
+      name: "Manrope",
+      cssVariable: "--font-manrope",
+      weights: ["200 800"],
+      styles: ["normal"],
+      subsets: ["latin", "cyrillic"],
+      fallbacks: ["sans-serif"],
+    },
+  ],
+});
