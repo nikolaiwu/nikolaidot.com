@@ -16,6 +16,7 @@ This repository is public. Anything committed is published, and git history is p
 
 Before any commit, check for and flag:
 
+- **Format, build and check.** Run `pnpm format`, `pnpm build` and `pnpm astro check`, and fix anything they report.
 - **Local and draft files.** `*.local.md` and `drafts/` are gitignored and must stay out. Run `git status` before the first commit and after changing `.gitignore`.
 - **Secrets.** No `.env` files, API keys or tokens. Analytics site IDs are fine.
 - **Personal data.** Commits use the GitHub noreply email, not a personal address. Nothing from the private list in `PLAN.local.md`.
@@ -64,10 +65,12 @@ pnpm build         # static build to dist/
 pnpm preview       # serve the built site
 pnpm format        # prettier --write .
 pnpm format:check  # prettier --check .
-pnpm astro check   # type-check .astro files (needs @astrojs/check, not installed yet)
+pnpm astro check   # type-check .astro and .ts files
 ```
 
-There is no test runner.
+There is no test runner. TypeScript stays on 6.x until `@astrojs/check` supports 7.
+
+Don't format, build or type-check after every change. Run them only before a commit (see "Public repo").
 
 Start the dev server in background mode, and manage it with the matching subcommands:
 
