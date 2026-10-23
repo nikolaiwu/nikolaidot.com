@@ -1,43 +1,21 @@
-# Astro Starter Kit: Minimal
+# Nikolai Vuchkov — portfolio
+
+Source for my personal portfolio site, built with [Astro](https://astro.build).
+
+## Development
+
+Requires Node 22.23.4 or later and pnpm.
 
 ```sh
-pnpm create astro@latest -- --template minimal
+pnpm install
+pnpm dev      # http://localhost:4321
+pnpm build    # static build to dist/
+pnpm preview  # serve the build locally
+pnpm format   # format with Prettier
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## License
 
-## 🚀 Project Structure
+The source code is licensed under [MIT](LICENSE).
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Written content, images, video and other media, including the case studies in `src/content/`, are © Nikolai Vuchkov, all rights reserved. They are not covered by the MIT license and may not be reused without permission.
