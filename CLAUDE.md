@@ -59,10 +59,11 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - Every page renders inside `src/layouts/Base.astro` (`<html lang>`, head, skip link, header, footer). Case studies use `src/layouts/CaseStudy.astro`.
 - UI strings live in `src/i18n/ui.ts`; `bg` must have every key `en` has. Get them with `const t = useTranslations(lang)`.
 - Build internal links with `getRelativeLocaleUrl(lang, path)` from `astro:i18n`, never by hand.
-- The language switcher links to the same path in the other locale. Pass `translated={false}` to `Base` on pages without a translation.
+- The language switcher links to the same path in the other locale. Pass `translated={false}` to `Base` on pages without a translation; that also drops the `hreflang` alternates.
+- `Base` renders `hreflang` alternates (each locale plus `x-default` → English), `og:locale` and `og:locale:alternate` (codes in `ogLocales` in `ui.ts`). Absolute URLs come from `site` in `astro.config.mjs`, a placeholder until the domain is set.
 - Longer page copy is Markdown, one file per locale (About: `src/content/about/{en,bg}.md`).
 - Contact details are in `src/data/contact.ts`, and the contact section is in the footer (`#contact`).
-- `public/` holds only the public CV (`cv-…-p.pdf`): no phone number and no personal email. Before committing a new one, check its text, links and metadata.
+- `public/` holds only the public CV (`cv-…-p.pdf`, `-p` for public): no phone number and no personal email. Before committing a new one, check its text, links and metadata.
 
 ## Case studies
 
