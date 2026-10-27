@@ -1,0 +1,15 @@
+---
+import { useTranslations, type Lang } from "../i18n/ui";
+import type { WorkEntry } from "../lib/work";
+
+interface Props {
+  entry: WorkEntry;
+  lang: Lang;
+}
+
+const { entry, lang } = Astro.props;
+const { status, year } = entry.data;
+const t = useTranslations(lang);
+---
+
+{status === "archived" ? `${t("work.archived")} · ${year}` : year}

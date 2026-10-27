@@ -1,0 +1,46 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import WorkCard from "../components/WorkCard.astro";
+import WorkYear from "../components/WorkYear.astro";
+import { useTranslations, type Lang } from "../i18n/ui";
+import Base from "../layouts/Base.astro";
+import { getSlug, getWork } from "../lib/work";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const work = await getWork(lang);
+const featured = work.filter(({ data }) => data.featured);
+const more = work.filter(({ data }) => !data.featured);
+---
+
+<Base lang={lang} title={t("work.title")} description={t("work.intro")}>
+  <h1>{t("work.title")}</h1>
+  <p>{t("work.intro")}</p>
+  <section aria-labelledby="featured-title">
+    <h2 id="featured-title">{t("home.featured")}</h2>
+    <ul>
+      {featured.map((entry) => (
+        <li>
+          <WorkCard entry={entry} lang={lang} />
+        </li>
+      ))}
+    </ul>
+  </section>
+  <section aria-labelledby="more-title">
+    <h2 id="more-title">{t("work.more")}</h2>
+    <ul>
+      {more.map((entry) => (
+        <li>
+          <a href={getRelativeLocaleUrl(lang, `work/${getSlug(entry)}`)}>
+            {entry.data.title}
+          </a>
+          {entry.data.client} · <WorkYear entry={entry} lang={lang} />
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>

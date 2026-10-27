@@ -1,0 +1,11 @@
+---
+import type { InferGetStaticPropsType } from "astro";
+import CaseStudy from "../../layouts/CaseStudy.astro";
+import { getWorkPaths } from "../../lib/work";
+
+export const getStaticPaths = () => getWorkPaths("en");
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+---
+
+<CaseStudy lang="en" {...Astro.props} />

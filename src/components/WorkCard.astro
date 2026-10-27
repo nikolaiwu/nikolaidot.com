@@ -1,0 +1,26 @@
+---
+import { Image } from "astro:assets";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import type { Lang } from "../i18n/ui";
+import { getSlug, type WorkEntry } from "../lib/work";
+import WorkYear from "./WorkYear.astro";
+
+interface Props {
+  entry: WorkEntry;
+  lang: Lang;
+}
+
+const { entry, lang } = Astro.props;
+const { title, client, role, summary, cover } = entry.data;
+---
+
+<article>
+  <Image src={cover} alt="" />
+  <h3>
+    <a href={getRelativeLocaleUrl(lang, `work/${getSlug(entry)}`)}>{title}</a>
+  </h3>
+  <p>{summary}</p>
+  <p>
+    {client} · {role} · <WorkYear entry={entry} lang={lang} />
+  </p>
+</article>

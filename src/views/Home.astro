@@ -1,0 +1,37 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import Hero from "../components/Hero.astro";
+import WorkCard from "../components/WorkCard.astro";
+import { email } from "../data/contact";
+import { useTranslations, type Lang } from "../i18n/ui";
+import Base from "../layouts/Base.astro";
+import { getWork } from "../lib/work";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const featured = (await getWork(lang)).filter(({ data }) => data.featured);
+---
+
+<Base lang={lang}>
+  <Hero lang={lang} />
+  <section aria-labelledby="featured-title">
+    <h2 id="featured-title">{t("home.featured")}</h2>
+    <ul>
+      {featured.map((entry) => (
+        <li>
+          <WorkCard entry={entry} lang={lang} />
+        </li>
+      ))}
+    </ul>
+    <a href={getRelativeLocaleUrl(lang, "work")}>{t("home.allWork")}</a>
+  </section>
+  <section aria-labelledby="cta-title">
+    <h2 id="cta-title">{t("home.contactTitle")}</h2>
+    <p>{t("home.contactText")}</p>
+    <a href={`mailto:${email}`}>{t("home.contactLink")}</a>
+  </section>
+</Base>
