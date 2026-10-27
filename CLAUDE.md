@@ -49,7 +49,7 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 ## Fonts
 
 - Manrope (variable, 200–800, no italic) through the Astro Fonts API with the Fontsource provider, configured in `astro.config.mjs`. Files are downloaded at build time and self-hosted from `/_astro/fonts/`.
-- Exposed as `--font-manrope`. Render `<Font cssVariable="--font-manrope" />` in the page `<head>` and preload only the subset the locale uses (`preload={[{ subset: "latin" }]}` for English).
+- Exposed as `--font-manrope`. Render `<Font cssVariable="--font-manrope" />` in the page `<head>` and preload only the subsets the locale uses: `latin` for English, `cyrillic` and `latin` for Bulgarian (its pages also contain Latin text, and preloading only Cyrillic caused a layout shift).
 - No `@fontsource` packages or hand-written `@font-face` rules.
 
 ## Pages and i18n
@@ -64,6 +64,13 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - Longer page copy is Markdown, one file per locale (About: `src/content/about/{en,bg}.md`).
 - Contact details are in `src/data/contact.ts`, and the contact section is in the footer (`#contact`).
 - `public/` holds only the public CV (`cv-…-p.pdf`, `-p` for public): no phone number and no personal email. Before committing a new one, check its text, links and metadata.
+
+## Hero
+
+- `DotGrid.astro` is a custom element drawing on a decorative canvas (`aria-hidden`). The headline text stays the LCP element, and the canvas is absolutely positioned so it can't shift layout.
+- It only redraws in response to the pointer, while it's in view (`IntersectionObserver`) and the tab is visible. Under `prefers-reduced-motion: reduce` it draws one static frame and ignores the pointer.
+- Device pixel ratio is capped at 2. Colors come from CSS tokens, resolved through `getComputedStyle` and re-read when the color scheme changes.
+- Listeners share one `AbortController`, aborted in `disconnectedCallback`.
 
 ## Case studies
 
