@@ -1,0 +1,42 @@
+---
+import { Font } from "astro:assets";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { useTranslations, type Lang } from "../i18n/ui";
+import "../styles/main.css";
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  /** False hides the language switcher on pages without a translation. */
+  translated?: boolean;
+}
+
+const { lang, title, description, translated = true } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+    <Font
+      cssVariable="--font-manrope"
+      preload={[{ subset: lang === "bg" ? "cyrillic" : "latin" }]}
+    />
+    <title>{title ? `${title} — ${t("site.name")}` : t("site.name")}</title>
+    <meta name="description" content={description ?? t("site.description")} />
+  </head>
+  <body>
+    <a href="#main">{t("skip.link")}</a>
+    <Header lang={lang} translated={translated} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>

@@ -1,0 +1,49 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { defaultLang, languages, useTranslations, type Lang } from "../i18n/ui";
+
+interface Props {
+  lang: Lang;
+  translated: boolean;
+}
+
+const { lang, translated } = Astro.props;
+const t = useTranslations(lang);
+
+const { pathname } = Astro.url;
+// The current path without the locale prefix, shared by every locale.
+const path = lang === defaultLang ? pathname : pathname.slice(lang.length + 1);
+const isCurrent = (href: string) =>
+  pathname.replace(/\/$/, "") === href.replace(/\/$/, "");
+
+const links = [
+  { href: getRelativeLocaleUrl(lang, "work"), label: t("nav.work") },
+  { href: getRelativeLocaleUrl(lang, "about"), label: t("nav.about") },
+  { href: "#contact", label: t("nav.contact") },
+];
+
+const alternates = (Object.keys(languages) as Lang[]).filter(
+  (code) => code !== lang,
+);
+---
+
+<header>
+  <a href={getRelativeLocaleUrl(lang)}>{t("site.name")}</a>
+  <nav aria-label={t("nav.label")}>
+    <ul>
+      {links.map(({ href, label }) => (
+        <li>
+          <a href={href} aria-current={isCurrent(href) ? "page" : undefined}>
+            {label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+  {translated &&
+    alternates.map((code) => (
+      <a href={getRelativeLocaleUrl(code, path)} hreflang={code} lang={code}>
+        {languages[code]}
+      </a>
+    ))}
+</header>
