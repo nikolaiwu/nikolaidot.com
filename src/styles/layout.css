@@ -1,0 +1,18 @@
+/* Content-box, so the max width is the content's and the gutter sits outside it. */
+.container {
+  box-sizing: content-box;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+
+/* Full width by default. Zero specificity, so any span a component sets wins. */
+:where(.grid > *) {
+  grid-column: 1 / -1;
+}

@@ -1,4 +1,58 @@
+/* Primitives: raw values. Components use the semantic tokens below. */
 :root {
-  --color-accent: #4361ee;
-  --page-background: #ebebdf;
+  --neutral-100: #ebebdf;
+  --neutral-300: #c4c4b6;
+  --neutral-400: #9d9d91;
+  --neutral-600: #5e5e55;
+  --neutral-800: #3a3a34;
+  --neutral-950: #161613;
+
+  --blue-300: #8198f5;
+  --blue-500: #4361ee;
+}
+
+/* Colour follows the system scheme. */
+:root {
+  color-scheme: light dark;
+
+  --color-background: light-dark(var(--neutral-100), var(--neutral-950));
+  --color-foreground: light-dark(var(--neutral-950), var(--neutral-100));
+  --color-muted: light-dark(var(--neutral-600), var(--neutral-400));
+  --color-border: light-dark(var(--neutral-300), var(--neutral-800));
+  --color-accent: light-dark(var(--blue-500), var(--blue-300));
+}
+
+/* Type scale, fluid from 360px to 1280px viewports. */
+:root {
+  --text-sm: 0.875rem;
+  --text-base: clamp(1rem, 0.9511rem + 0.2174vi, 1.125rem);
+  --text-lg: clamp(1.125rem, 1.0272rem + 0.4348vi, 1.375rem);
+  --text-xl: clamp(1.375rem, 1.2283rem + 0.6522vi, 1.75rem);
+  --text-2xl: clamp(1.75rem, 1.4565rem + 1.3043vi, 2.5rem);
+  --text-3xl: clamp(2.25rem, 1.663rem + 2.6087vi, 3.75rem);
+  --text-display: clamp(3rem, 1.7478rem + 5.5652vi, 6.2rem);
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+}
+
+/* Spacing */
+:root {
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+}
+
+/* Layout */
+:root {
+  --container-max: 72rem;
+  --gutter: clamp(1rem, 0.2174rem + 3.4783vi, 3rem);
+  --grid-columns: 12;
+  --grid-gap: clamp(1rem, 0.6087rem + 1.7391vi, 2rem);
 }
