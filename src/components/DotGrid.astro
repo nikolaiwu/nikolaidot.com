@@ -1,0 +1,281 @@
+---
+interface Props {
+  /** Distance between dot centres, in px. */
+  spacing?: number;
+  /** Square side length at rest, in px. */
+  size?: number;
+  /** Any CSS colour. */
+  color?: string;
+  /** Dot opacity at rest, 0–1. */
+  opacity?: number;
+  /** Share of grid cells that get a dot, 0–1. */
+  density?: number;
+  /** How strongly dots group into dense and empty patches, 0–1. 0 is uniform noise. */
+  clustering?: number;
+  /** Size of the patches, in grid cells. */
+  clusterSize?: number;
+  /** Fixes the pattern. Leave unset for a new pattern on every load. */
+  seed?: number;
+  /** Distance from the cursor that dots react within, in px. */
+  hoverRadius?: number;
+  /** Scale of the dot directly under the cursor. */
+  hoverScale?: number;
+  /** Opacity of the dot directly under the cursor, 0–1. */
+  hoverOpacity?: number;
+  /** Share of the remaining distance to the hover state covered each frame, 0–1. 1 is instant. */
+  easing?: number;
+}
+
+const {
+  spacing = 6,
+  size = 3,
+  color = "var(--color-accent)",
+  opacity = 0.1,
+  density = 0.45,
+  clustering = 0.1,
+  clusterSize = 1,
+  seed = 1,
+  hoverRadius = 120,
+  hoverScale = 1.6,
+  hoverOpacity = 0.3,
+  easing = 0.2,
+} = Astro.props;
+
+const config = {
+  spacing,
+  size,
+  color,
+  opacity,
+  density,
+  clustering,
+  clusterSize,
+  seed,
+  hoverRadius,
+  hoverScale,
+  hoverOpacity,
+  easing,
+};
+---
+
+<dot-grid data-config={JSON.stringify(config)}>
+  <canvas aria-hidden="true"></canvas>
+</dot-grid>
+
+<style>
+  dot-grid {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: block;
+    pointer-events: none;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+
+<script>
+  type Config = {
+    spacing: number;
+    size: number;
+    color: string;
+    opacity: number;
+    density: number;
+    clustering: number;
+    clusterSize: number;
+    seed?: number;
+    hoverRadius: number;
+    hoverScale: number;
+    hoverOpacity: number;
+    easing: number;
+  };
+
+  const ALPHA_LEVELS = 64;
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const smoothstep = (t: number) => t * t * (3 - 2 * t);
+
+  // Stable 0–1 value per grid cell, so the pattern survives resizes.
+  function hash(x: number, y: number, seed: number) {
+    let h = Math.imul(x, 0x27d4eb2d) ^ Math.imul(y, 0x165667b1) ^ seed;
+    h = Math.imul(h ^ (h >>> 15), 0x85ebca6b);
+    h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+    return ((h ^ (h >>> 16)) >>> 0) / 2 ** 32;
+  }
+
+  function valueNoise(x: number, y: number, seed: number) {
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const sx = smoothstep(x - x0);
+    const sy = smoothstep(y - y0);
+    const top = lerp(hash(x0, y0, seed), hash(x0 + 1, y0, seed), sx);
+    const bottom = lerp(hash(x0, y0 + 1, seed), hash(x0 + 1, y0 + 1, seed), sx);
+    return lerp(top, bottom, sy);
+  }
+
+  class DotGrid extends HTMLElement {
+    #config!: Config;
+    #canvas!: HTMLCanvasElement;
+    #ctx!: CanvasRenderingContext2D;
+    #seed = 0;
+    #width = 0;
+    #height = 0;
+    #xs = new Float32Array();
+    #ys = new Float32Array();
+    // 0 at rest, 1 directly under the cursor.
+    #intensities = new Float32Array();
+    #pointer: { x: number; y: number } | null = null;
+    #frame = 0;
+    #resizeObserver = new ResizeObserver(() => this.#layout());
+
+    connectedCallback() {
+      this.#config = JSON.parse(this.dataset.config!);
+      this.#canvas = this.querySelector("canvas")!;
+      this.#ctx = this.#canvas.getContext("2d")!;
+      this.#seed = this.#config.seed ?? (Math.random() * 2 ** 32) >>> 0;
+      this.#config.color = this.#resolveColor(this.#config.color);
+
+      this.#resizeObserver.observe(this);
+      window.addEventListener("pointermove", this.#onPointerMove, {
+        passive: true,
+      });
+      window.addEventListener("pointerout", this.#onPointerOut);
+      window.addEventListener("scroll", this.#onScroll, { passive: true });
+    }
+
+    disconnectedCallback() {
+      this.#resizeObserver.disconnect();
+      window.removeEventListener("pointermove", this.#onPointerMove);
+      window.removeEventListener("pointerout", this.#onPointerOut);
+      window.removeEventListener("scroll", this.#onScroll);
+      cancelAnimationFrame(this.#frame);
+      this.#frame = 0;
+    }
+
+    // Canvas can't read var(), so let the browser compute the colour.
+    #resolveColor(value: string) {
+      this.style.color = value;
+      const resolved = getComputedStyle(this).color;
+      this.style.removeProperty("color");
+      return resolved;
+    }
+
+    #onPointerMove = (event: PointerEvent) => {
+      this.#pointer = { x: event.clientX, y: event.clientY };
+      this.#requestDraw();
+    };
+
+    #onPointerOut = (event: PointerEvent) => {
+      if (event.relatedTarget) return;
+      this.#pointer = null;
+      this.#requestDraw();
+    };
+
+    #onScroll = () => {
+      if (this.#pointer) this.#requestDraw();
+    };
+
+    #requestDraw() {
+      if (!this.#frame) this.#frame = requestAnimationFrame(this.#draw);
+    }
+
+    #layout() {
+      const { spacing, density, clustering, clusterSize } = this.#config;
+      const dpr = window.devicePixelRatio || 1;
+
+      this.#width = this.clientWidth;
+      this.#height = this.clientHeight;
+      this.#canvas.width = Math.round(this.#width * dpr);
+      this.#canvas.height = Math.round(this.#height * dpr);
+      this.#ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const cols = Math.ceil(this.#width / spacing);
+      const rows = Math.ceil(this.#height / spacing);
+      const xs: number[] = [];
+      const ys: number[] = [];
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const patch = valueNoise(
+            col / clusterSize,
+            row / clusterSize,
+            ~this.#seed,
+          );
+          const chance = density + (patch - 0.5) * 2 * clustering;
+          if (hash(col, row, this.#seed) >= chance) continue;
+          xs.push((col + 0.5) * spacing);
+          ys.push((row + 0.5) * spacing);
+        }
+      }
+
+      this.#xs = Float32Array.from(xs);
+      this.#ys = Float32Array.from(ys);
+      this.#intensities = new Float32Array(xs.length);
+
+      // Resizing clears the canvas, so repaint in the same frame.
+      cancelAnimationFrame(this.#frame);
+      this.#draw();
+    }
+
+    #draw = () => {
+      this.#frame = 0;
+      const { color, opacity, hoverRadius, hoverOpacity, easing } =
+        this.#config;
+      const ease = reducedMotion.matches ? 1 : easing;
+      const rect = this.getBoundingClientRect();
+      const px = this.#pointer ? this.#pointer.x - rect.left : Infinity;
+      const py = this.#pointer ? this.#pointer.y - rect.top : Infinity;
+      const levels = this.#emptyLevels();
+      let settling = false;
+
+      for (let i = 0; i < this.#xs.length; i++) {
+        const distance = Math.hypot(this.#xs[i] - px, this.#ys[i] - py);
+        const target =
+          distance < hoverRadius ? smoothstep(1 - distance / hoverRadius) : 0;
+
+        let intensity = lerp(this.#intensities[i], target, ease);
+        if (Math.abs(target - intensity) < 0.001) intensity = target;
+        else settling = true;
+        this.#intensities[i] = intensity;
+
+        const alpha = lerp(opacity, hoverOpacity, intensity);
+        levels[Math.round(alpha * (ALPHA_LEVELS - 1))].push(i);
+      }
+
+      this.#ctx.clearRect(0, 0, this.#width, this.#height);
+      this.#fill(levels, color);
+
+      if (settling) this.#requestDraw();
+    };
+
+    // Dots are grouped by opacity so each level is a single fill.
+    #emptyLevels(): number[][] {
+      return Array.from({ length: ALPHA_LEVELS }, () => []);
+    }
+
+    #fill(levels: number[][], color: string) {
+      const { size, hoverScale } = this.#config;
+      const ctx = this.#ctx;
+      ctx.fillStyle = color;
+
+      levels.forEach((dots, level) => {
+        if (!level || !dots.length) return;
+        ctx.globalAlpha = level / (ALPHA_LEVELS - 1);
+        ctx.beginPath();
+        for (const i of dots) {
+          const x = this.#xs[i];
+          const y = this.#ys[i];
+          const side = size * lerp(1, hoverScale, this.#intensities[i]);
+          ctx.rect(x - side / 2, y - side / 2, side, side);
+        }
+        ctx.fill();
+      });
+    }
+  }
+
+  customElements.define("dot-grid", DotGrid);
+</script>

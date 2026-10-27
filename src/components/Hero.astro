@@ -1,0 +1,41 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { useTranslations, type Lang } from "../i18n/ui";
+import DotGrid from "./DotGrid.astro";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="hero">
+  <DotGrid />
+  <p class="my-name">{t("site.name")}</p>
+  <h1>{t("hero.title")}</h1>
+  <p>{t("hero.text")}</p>
+  <a href={getRelativeLocaleUrl(lang, "work")}>{t("hero.link")}</a>
+</section>
+
+<style>
+  .hero {
+    --name-size: 6.2rem;
+    --name-leading: 1.2;
+    position: relative;
+    /* Keeps the fixed name above the content that follows. */
+    z-index: 1;
+    isolation: isolate;
+    /* The name blends with the hero only, so it needs an opaque backdrop. */
+    background: var(--page-background);
+  }
+
+  .my-name {
+    position: relative;
+    font-size: var(--name-size);
+    font-weight: 800;
+    line-height: var(--name-leading);
+    text-transform: uppercase;
+  }
+</style>
