@@ -36,7 +36,9 @@ const alternates = translated ? locales.filter((code) => code !== lang) : [];
     <meta name="generator" content={Astro.generator} />
     <Font
       cssVariable="--font-manrope"
-      preload={[{ subset: lang === "bg" ? "cyrillic" : "latin" }]}
+      preload={(lang === "bg" ? ["cyrillic", "latin"] : ["latin"]).map(
+        (subset) => ({ subset }),
+      )}
     />
     <title>{title ? `${title} — ${t("site.name")}` : t("site.name")}</title>
     <meta name="description" content={description ?? t("site.description")} />
