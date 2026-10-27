@@ -5,7 +5,14 @@ export const languages = {
 
 export type Lang = keyof typeof languages;
 
+export const locales = Object.keys(languages) as Lang[];
+
 export const defaultLang: Lang = "en";
+
+export const ogLocales: Record<Lang, string> = {
+  en: "en_US",
+  bg: "bg_BG",
+};
 
 const en = {
   "site.name": "Vuchkov.Studio",

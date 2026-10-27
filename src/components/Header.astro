@@ -1,6 +1,7 @@
 ---
 import { getRelativeLocaleUrl } from "astro:i18n";
-import { defaultLang, languages, useTranslations, type Lang } from "../i18n/ui";
+import { getLocalePath } from "../i18n/paths";
+import { languages, locales, useTranslations, type Lang } from "../i18n/ui";
 
 interface Props {
   lang: Lang;
@@ -11,8 +12,7 @@ const { lang, translated } = Astro.props;
 const t = useTranslations(lang);
 
 const { pathname } = Astro.url;
-// The current path without the locale prefix, shared by every locale.
-const path = lang === defaultLang ? pathname : pathname.slice(lang.length + 1);
+const path = getLocalePath(pathname, lang);
 const isCurrent = (href: string) =>
   pathname.replace(/\/$/, "") === href.replace(/\/$/, "");
 
@@ -22,9 +22,7 @@ const links = [
   { href: "#contact", label: t("nav.contact") },
 ];
 
-const alternates = (Object.keys(languages) as Lang[]).filter(
-  (code) => code !== lang,
-);
+const alternates = locales.filter((code) => code !== lang);
 ---
 
 <header>

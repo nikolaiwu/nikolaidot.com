@@ -1,20 +1,30 @@
 ---
 import { Font } from "astro:assets";
+import { getAbsoluteLocaleUrl } from "astro:i18n";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
-import { useTranslations, type Lang } from "../i18n/ui";
+import { getLocalePath } from "../i18n/paths";
+import {
+  defaultLang,
+  locales,
+  ogLocales,
+  useTranslations,
+  type Lang,
+} from "../i18n/ui";
 import "../styles/main.css";
 
 interface Props {
   lang: Lang;
   title?: string;
   description?: string;
-  /** False hides the language switcher on pages without a translation. */
+  /** False drops the language switcher and alternates on pages without a translation. */
   translated?: boolean;
 }
 
 const { lang, title, description, translated = true } = Astro.props;
 const t = useTranslations(lang);
+const path = getLocalePath(Astro.url.pathname, lang);
+const alternates = translated ? locales.filter((code) => code !== lang) : [];
 ---
 
 <html lang={lang}>
@@ -30,6 +40,26 @@ const t = useTranslations(lang);
     />
     <title>{title ? `${title} — ${t("site.name")}` : t("site.name")}</title>
     <meta name="description" content={description ?? t("site.description")} />
+    {alternates.length > 0 && (
+      <>
+        {[lang, ...alternates].map((code) => (
+          <link
+            rel="alternate"
+            hreflang={code}
+            href={getAbsoluteLocaleUrl(code, path)}
+          />
+        ))}
+        <link
+          rel="alternate"
+          hreflang="x-default"
+          href={getAbsoluteLocaleUrl(defaultLang, path)}
+        />
+      </>
+    )}
+    <meta property="og:locale" content={ogLocales[lang]} />
+    {alternates.map((code) => (
+      <meta property="og:locale:alternate" content={ogLocales[code]} />
+    ))}
   </head>
   <body>
     <a href="#main">{t("skip.link")}</a>
