@@ -3,6 +3,11 @@ import { defineConfig, fontProviders } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
+  i18n: {
+    locales: ["en", "bg"],
+    defaultLocale: "en",
+    routing: { prefixDefaultLocale: false },
+  },
   fonts: [
     {
       provider: fontProviders.fontsource(),
