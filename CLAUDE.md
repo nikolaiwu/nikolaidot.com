@@ -54,6 +54,10 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 
 ## Case studies
 
+- The `work` collection is defined in `src/content.config.ts` (glob loader, `.md`/`.mdx`). Entries live in `src/content/work/en/` and `src/content/work/bg/`; the same filename is the same case study in both languages, and entry ids are `en/<slug>` / `bg/<slug>`. Locale comes from the folder, not frontmatter.
+- Translated entries repeat every frontmatter field; only `title`, `role`, `summary` and the body change.
+- Archived entries (`status: archived`) have no `url`.
+- The current entries are Lorem Ipsum placeholders (Cyrillic pseudo-Latin text in `bg/`) with SVG images from `src/assets/placeholders/`. They exist to style against and get replaced by real case studies.
 - Work in progress lives in `drafts/` (or as `*.local.md`). A case study moves into `src/content/` and is committed only when it's finished and passes the content rules in `PLAN.local.md`.
 - When writing or editing a case study, check it against those rules and flag anything that crosses a line. When unsure, anonymise.
 
