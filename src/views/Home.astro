@@ -18,7 +18,7 @@ const featured = (await getWork(lang)).filter(({ data }) => data.featured);
 
 <Base lang={lang}>
   <Hero lang={lang} />
-  <section aria-labelledby="featured-title">
+  <section class="container" aria-labelledby="featured-title">
     <h2 id="featured-title">{t("home.featured")}</h2>
     <ul>
       {featured.map((entry) => (
@@ -29,7 +29,7 @@ const featured = (await getWork(lang)).filter(({ data }) => data.featured);
     </ul>
     <a href={getRelativeLocaleUrl(lang, "work")}>{t("home.allWork")}</a>
   </section>
-  <section aria-labelledby="cta-title">
+  <section class="container" aria-labelledby="cta-title">
     <h2 id="cta-title">{t("home.contactTitle")}</h2>
     <p>{t("home.contactText")}</p>
     <a href={`mailto:${email}`}>{t("home.contactLink")}</a>

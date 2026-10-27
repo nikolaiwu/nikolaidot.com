@@ -18,9 +18,11 @@ const more = work.filter(({ data }) => !data.featured);
 ---
 
 <Base lang={lang} title={t("work.title")} description={t("work.intro")}>
-  <h1>{t("work.title")}</h1>
-  <p>{t("work.intro")}</p>
-  <section aria-labelledby="featured-title">
+  <header class="container">
+    <h1>{t("work.title")}</h1>
+    <p>{t("work.intro")}</p>
+  </header>
+  <section class="container" aria-labelledby="featured-title">
     <h2 id="featured-title">{t("home.featured")}</h2>
     <ul>
       {featured.map((entry) => (
@@ -30,7 +32,7 @@ const more = work.filter(({ data }) => !data.featured);
       ))}
     </ul>
   </section>
-  <section aria-labelledby="more-title">
+  <section class="container" aria-labelledby="more-title">
     <h2 id="more-title">{t("work.more")}</h2>
     <ul>
       {more.map((entry) => (

@@ -12,7 +12,9 @@ const t = useTranslations(lang);
 ---
 
 <Base lang={lang} title={t("notFound.title")} translated={false}>
-  <h1>{t("notFound.title")}</h1>
-  <p>{t("notFound.text")}</p>
-  <a href={getRelativeLocaleUrl(lang)}>{t("notFound.home")}</a>
+  <div class="container">
+    <h1>{t("notFound.title")}</h1>
+    <p>{t("notFound.text")}</p>
+    <a href={getRelativeLocaleUrl(lang)}>{t("notFound.home")}</a>
+  </div>
 </Base>

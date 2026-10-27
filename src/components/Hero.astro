@@ -13,22 +13,24 @@ const t = useTranslations(lang);
 
 <section class="hero">
   <DotGrid />
-  <p class="my-name">{t("site.name")}</p>
-  <h1>{t("hero.title")}</h1>
-  <p>{t("hero.text")}</p>
-  <a href={getRelativeLocaleUrl(lang, "work")}>{t("hero.link")}</a>
+  <div class="container">
+    <p class="my-name">{t("site.name")}</p>
+    <h1>{t("hero.title")}</h1>
+    <p>{t("hero.text")}</p>
+    <a href={getRelativeLocaleUrl(lang, "work")}>{t("hero.link")}</a>
+  </div>
 </section>
 
 <style>
   .hero {
-    --name-size: 6.2rem;
+    --name-size: var(--text-display);
     --name-leading: 1.2;
     position: relative;
     /* Keeps the fixed name above the content that follows. */
     z-index: 1;
     isolation: isolate;
     /* The name blends with the hero only, so it needs an opaque backdrop. */
-    background: var(--page-background);
+    background: var(--color-background);
   }
 
   .my-name {
