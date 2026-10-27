@@ -46,6 +46,15 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 
 - Comments are minimal and to the point throughout the code.
 
+## Styles
+
+- Global CSS lives in `src/styles/`. `main.css` is the single entry point, imported by `Base.astro`: `reset.css` (in the `reset` cascade layer, so any unlayered rule overrides it), `tokens.css`, `base.css`, `typography.css`, `layout.css`. Component styles stay in scoped `<style>` blocks.
+- `tokens.css` holds primitives (`--neutral-*`, `--blue-*`) and semantic tokens. Components use only the semantic ones: `--color-*`, `--text-*`, `--leading-*`, `--space-*`, `--container-max`, `--gutter`, `--grid-*`.
+- Colors follow the system scheme through `color-scheme: light dark` and `light-dark()`. No theme toggle.
+- Type sizes above `--text-sm` are fluid `clamp()` values, from 360px to 1280px viewports. Headings get their sizes in `typography.css`.
+- `.container` centers content at `--container-max` with `--gutter` padding. Components apply it themselves: on the element when it has no full-width background, or on an inner wrapper when it does (the hero).
+- `.grid` is a `--grid-columns` (12) column grid with a fluid `--grid-gap`. Children span all columns by default; components set `grid-column` to place them. It combines with `.container` on the same element.
+
 ## Fonts
 
 - Manrope (variable, 200–800, no italic) through the Astro Fonts API with the Fontsource provider, configured in `astro.config.mjs`. Files are downloaded at build time and self-hosted from `/_astro/fonts/`.
