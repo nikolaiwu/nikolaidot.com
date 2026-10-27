@@ -94,7 +94,10 @@ const config = {
   };
 
   const ALPHA_LEVELS = 64;
+  // Keeps the canvas cheap on high-DPI screens.
+  const MAX_DPR = 2;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const darkScheme = matchMedia("(prefers-color-scheme: dark)");
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
   const smoothstep = (t: number) => t * t * (3 - 2 * t);
@@ -122,6 +125,7 @@ const config = {
     #canvas!: HTMLCanvasElement;
     #ctx!: CanvasRenderingContext2D;
     #seed = 0;
+    #color = "";
     #width = 0;
     #height = 0;
     #xs = new Float32Array();
@@ -130,30 +134,54 @@ const config = {
     #intensities = new Float32Array();
     #pointer: { x: number; y: number } | null = null;
     #frame = 0;
+    #inView = false;
+    #listeners = new AbortController();
     #resizeObserver = new ResizeObserver(() => this.#layout());
+    #intersectionObserver = new IntersectionObserver(([entry]) => {
+      this.#inView = entry.isIntersecting;
+      this.#onActivityChange();
+    });
 
     connectedCallback() {
       this.#config = JSON.parse(this.dataset.config!);
       this.#canvas = this.querySelector("canvas")!;
       this.#ctx = this.#canvas.getContext("2d")!;
       this.#seed = this.#config.seed ?? (Math.random() * 2 ** 32) >>> 0;
-      this.#config.color = this.#resolveColor(this.#config.color);
+      this.#color = this.#resolveColor(this.#config.color);
 
       this.#resizeObserver.observe(this);
+      this.#intersectionObserver.observe(this);
+
+      this.#listeners = new AbortController();
+      const { signal } = this.#listeners;
       window.addEventListener("pointermove", this.#onPointerMove, {
         passive: true,
+        signal,
       });
-      window.addEventListener("pointerout", this.#onPointerOut);
-      window.addEventListener("scroll", this.#onScroll, { passive: true });
+      window.addEventListener("pointerout", this.#onPointerOut, { signal });
+      window.addEventListener("scroll", this.#onScroll, {
+        passive: true,
+        signal,
+      });
+      document.addEventListener("visibilitychange", this.#onActivityChange, {
+        signal,
+      });
+      reducedMotion.addEventListener("change", this.#onActivityChange, {
+        signal,
+      });
+      darkScheme.addEventListener("change", this.#onSchemeChange, { signal });
     }
 
     disconnectedCallback() {
       this.#resizeObserver.disconnect();
-      window.removeEventListener("pointermove", this.#onPointerMove);
-      window.removeEventListener("pointerout", this.#onPointerOut);
-      window.removeEventListener("scroll", this.#onScroll);
-      cancelAnimationFrame(this.#frame);
-      this.#frame = 0;
+      this.#intersectionObserver.disconnect();
+      this.#listeners.abort();
+      this.#cancelDraw();
+    }
+
+    // Reacts to the pointer only while visible and motion is allowed.
+    get #active() {
+      return this.#inView && !document.hidden && !reducedMotion.matches;
     }
 
     // Canvas can't read var(), so let the browser compute the colour.
@@ -166,26 +194,46 @@ const config = {
 
     #onPointerMove = (event: PointerEvent) => {
       this.#pointer = { x: event.clientX, y: event.clientY };
-      this.#requestDraw();
+      if (this.#active) this.#requestDraw();
     };
 
     #onPointerOut = (event: PointerEvent) => {
       if (event.relatedTarget) return;
       this.#pointer = null;
-      this.#requestDraw();
+      if (this.#active) this.#requestDraw();
     };
 
     #onScroll = () => {
-      if (this.#pointer) this.#requestDraw();
+      if (this.#pointer && this.#active) this.#requestDraw();
+    };
+
+    // Pauses when hidden. Under reduced motion, settles straight into a
+    // static frame.
+    #onActivityChange = () => {
+      if (this.#active || (reducedMotion.matches && this.#inView)) {
+        this.#requestDraw();
+      } else {
+        this.#cancelDraw();
+      }
+    };
+
+    #onSchemeChange = () => {
+      this.#color = this.#resolveColor(this.#config.color);
+      this.#requestDraw();
     };
 
     #requestDraw() {
       if (!this.#frame) this.#frame = requestAnimationFrame(this.#draw);
     }
 
+    #cancelDraw() {
+      cancelAnimationFrame(this.#frame);
+      this.#frame = 0;
+    }
+
     #layout() {
       const { spacing, density, clustering, clusterSize } = this.#config;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
 
       this.#width = this.clientWidth;
       this.#height = this.clientHeight;
@@ -217,18 +265,19 @@ const config = {
       this.#intensities = new Float32Array(xs.length);
 
       // Resizing clears the canvas, so repaint in the same frame.
-      cancelAnimationFrame(this.#frame);
+      this.#cancelDraw();
       this.#draw();
     }
 
     #draw = () => {
       this.#frame = 0;
-      const { color, opacity, hoverRadius, hoverOpacity, easing } =
-        this.#config;
-      const ease = reducedMotion.matches ? 1 : easing;
+      const { opacity, hoverRadius, hoverOpacity, easing } = this.#config;
+      const still = reducedMotion.matches;
+      const ease = still ? 1 : easing;
+      const pointer = still ? null : this.#pointer;
       const rect = this.getBoundingClientRect();
-      const px = this.#pointer ? this.#pointer.x - rect.left : Infinity;
-      const py = this.#pointer ? this.#pointer.y - rect.top : Infinity;
+      const px = pointer ? pointer.x - rect.left : Infinity;
+      const py = pointer ? pointer.y - rect.top : Infinity;
       const levels = this.#emptyLevels();
       let settling = false;
 
@@ -247,9 +296,9 @@ const config = {
       }
 
       this.#ctx.clearRect(0, 0, this.#width, this.#height);
-      this.#fill(levels, color);
+      this.#fill(levels, this.#color);
 
-      if (settling) this.#requestDraw();
+      if (settling && this.#active) this.#requestDraw();
     };
 
     // Dots are grouped by opacity so each level is a single fill.
