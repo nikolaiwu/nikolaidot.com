@@ -1,4 +1,4 @@
-export const email = "hello@example.com";
+export const email = "sitars_upgrade.7s@icloud.com";
 
 export const profiles = [
   { name: "GitHub", url: "https://github.com/nikolaiwu" },
