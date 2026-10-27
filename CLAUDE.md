@@ -52,6 +52,18 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - Exposed as `--font-manrope`. Render `<Font cssVariable="--font-manrope" />` in the page `<head>` and preload only the subset the locale uses (`preload={[{ subset: "latin" }]}` for English).
 - No `@fontsource` packages or hand-written `@font-face` rules.
 
+## Pages and i18n
+
+- English (`en`, default) is unprefixed and Bulgarian (`bg`) lives under `/bg/`, through Astro's i18n routing. No fallbacks.
+- Page files are thin per-locale wrappers: `src/pages/about.astro` and `src/pages/bg/about.astro` both render `<About lang="…" />` from `src/views/`. Case study routes call `getWorkPaths(lang)` from `src/lib/work.ts`.
+- Every page renders inside `src/layouts/Base.astro` (`<html lang>`, head, skip link, header, footer). Case studies use `src/layouts/CaseStudy.astro`.
+- UI strings live in `src/i18n/ui.ts`; `bg` must have every key `en` has. Get them with `const t = useTranslations(lang)`.
+- Build internal links with `getRelativeLocaleUrl(lang, path)` from `astro:i18n`, never by hand.
+- The language switcher links to the same path in the other locale. Pass `translated={false}` to `Base` on pages without a translation.
+- Longer page copy is Markdown, one file per locale (About: `src/content/about/{en,bg}.md`).
+- Contact details are in `src/data/contact.ts`, and the contact section is in the footer (`#contact`).
+- `public/` holds only the public CV (`cv-…-p.pdf`): no phone number and no personal email. Before committing a new one, check its text, links and metadata.
+
 ## Case studies
 
 - The `work` collection is defined in `src/content.config.ts` (glob loader, `.md`/`.mdx`). Entries live in `src/content/work/en/` and `src/content/work/bg/`; the same filename is the same case study in both languages, and entry ids are `en/<slug>` / `bg/<slug>`. Locale comes from the folder, not frontmatter.
