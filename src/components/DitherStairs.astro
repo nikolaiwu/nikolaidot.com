@@ -1,0 +1,91 @@
+---
+import { ditherPath } from "../lib/dither";
+
+interface Props {
+  /** Width, in pixels of the pattern. */
+  cols?: number;
+  /** Height, in pixels of the pattern. */
+  rows?: number;
+  /** Width of the dithered fringe around the steps, in pixels of the pattern. */
+  fringe?: number;
+  seed?: number;
+  class?: string;
+}
+
+const {
+  cols = 40,
+  rows = 72,
+  fringe = 6,
+  seed = 11,
+  class: className,
+} = Astro.props;
+
+// Steps falling left to right, as [right edge, top] fractions of the solid area,
+// which leaves room for the fringe above and to the right.
+const steps = [
+  [0.24, 0],
+  [0.42, 0.18],
+  [0.6, 0.4],
+  [0.78, 0.62],
+  [1, 0.82],
+];
+const solidCols = cols - fringe;
+const solidRows = rows - fringe;
+const solidTop = (x: number) => {
+  const [, top] = steps.find(([end]) => (x + 0.5) / solidCols <= end)!;
+  return fringe + Math.round(top * solidRows);
+};
+
+// Distance from each pixel to the nearest solid one, counting diagonals as one.
+const distance = Array.from({ length: rows }, () =>
+  new Array<number>(cols).fill(Infinity),
+);
+const queue: [number, number][] = [];
+for (let x = 0; x < solidCols; x++) {
+  for (let y = solidTop(x); y < rows; y++) {
+    distance[y][x] = 0;
+    queue.push([x, y]);
+  }
+}
+for (let i = 0; i < queue.length; i++) {
+  const [x, y] = queue[i];
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
+      if (distance[ny][nx] <= distance[y][x] + 1) continue;
+      distance[ny][nx] = distance[y][x] + 1;
+      queue.push([nx, ny]);
+    }
+  }
+}
+
+// Solid steps, then pixels thinning out across the fringe.
+const path = ditherPath(
+  cols,
+  rows,
+  (x, y) => {
+    const d = distance[y][x];
+    return d === 0 ? 2 : Math.max(0, 1 - d / (fringe + 1));
+  },
+  { noise: 0.5, seed },
+);
+---
+
+<svg
+  class:list={["stairs", className]}
+  viewBox={`0 0 ${cols} ${rows}`}
+  fill="currentColor"
+  shape-rendering="crispEdges"
+  aria-hidden="true"
+>
+  <path d={path}></path>
+</svg>
+
+<style>
+  .stairs {
+    display: block;
+    block-size: auto;
+  }
+</style>

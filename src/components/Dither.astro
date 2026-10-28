@@ -1,0 +1,49 @@
+---
+import { ditherPath } from "../lib/dither";
+
+interface Props {
+  /** Width of the pattern, in pixels of the pattern. */
+  cols?: number;
+  /** Height of the pattern, in pixels of the pattern. */
+  rows?: number;
+  /** The side the pattern fades out towards; the opposite side is solid. */
+  fade?: "up" | "end";
+  /** Share of random jitter on top of the ordered pattern, 0–1. */
+  noise?: number;
+  seed?: number;
+  class?: string;
+}
+
+const {
+  cols = 96,
+  rows = 8,
+  fade = "up",
+  noise = 0.35,
+  seed = 7,
+  class: className,
+} = Astro.props;
+
+const path = ditherPath(
+  cols,
+  rows,
+  (x, y) => (fade === "up" ? (y + 0.5) / rows : 1 - (x + 0.5) / cols),
+  { noise, seed },
+);
+---
+
+<svg
+  class:list={["dither", className]}
+  viewBox={`0 0 ${cols} ${rows}`}
+  fill="currentColor"
+  shape-rendering="crispEdges"
+  aria-hidden="true"
+>
+  <path d={path}></path>
+</svg>
+
+<style>
+  .dither {
+    inline-size: 100%;
+    block-size: auto;
+  }
+</style>

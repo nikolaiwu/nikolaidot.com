@@ -1,0 +1,53 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { code128 } from "../lib/code128";
+
+interface Props extends HTMLAttributes<"svg"> {
+  /** Printable ASCII. */
+  text: string;
+}
+
+// Rest props carry the parent's scope, so it can size and place the barcode.
+const { text, class: className, ...rest } = Astro.props;
+
+// One subpath per bar, on a grid one module wide per unit.
+let x = 0;
+let d = "";
+code128(text).forEach((width, i) => {
+  if (i % 2 === 0) d += `M${x} 0h${width}v1h-${width}z`;
+  x += width;
+});
+---
+
+<!-- A scannable Code 128 barcode, generated at build time. It needs a quiet
+     zone of 10 modules on each side, left to the parent. Decorative. -->
+<svg
+  class:list={["barcode", className]}
+  viewBox={`0 0 ${x} 1`}
+  preserveAspectRatio="none"
+  aria-hidden="true"
+  style={`--modules: ${x}`}
+  {...rest}
+>
+  <path d={d}></path>
+</svg>
+
+<style>
+  /* Contained, so its long aspect ratio doesn't widen the parent: it fills
+     whatever width the rest of the content sets. */
+  .barcode {
+    display: block;
+    inline-size: 100%;
+    contain: inline-size;
+    fill: currentColor;
+  }
+
+  /* On low-density screens a fractional module blurs into grey and won't
+     scan, so it shrinks to whole pixels per module. */
+  @media (max-resolution: 1.5dppx) {
+    .barcode {
+      inline-size: round(down, 100%, var(--modules) * 1px);
+      shape-rendering: crispEdges;
+    }
+  }
+</style>

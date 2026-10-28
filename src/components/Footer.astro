@@ -1,6 +1,10 @@
 ---
 import { email, profiles } from "../data/contact";
 import { useTranslations, type Lang } from "../i18n/ui";
+import Barcode from "./Barcode.astro";
+import Dither from "./Dither.astro";
+import DitherStairs from "./DitherStairs.astro";
+import Icon from "./Icon.astro";
 
 interface Props {
   lang: Lang;
@@ -8,27 +12,224 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+
+const builtWith = [
+  { name: "brain", label: t("footer.brain") },
+  { name: "coffee", label: t("footer.coffee") },
+  { name: "claude", label: "Claude" },
+  { name: "astro", label: "Astro" },
+  { name: "typescript", label: "TypeScript" },
+  { name: "css", label: "CSS" },
+] as const;
+
+// Pixel columns across the full width, and across the staircase: both share
+// one pixel size.
+const edgeCols = 328;
+const stairsCols = 40;
 ---
 
-<footer class="container">
-  <section id="contact" aria-labelledby="contact-title">
-    <h2 id="contact-title">{t("contact.title")}</h2>
-    <dl>
-      <dt>{t("contact.email")}</dt>
-      <dd>
-        <a href={`mailto:${email}`}>{email}</a>
-      </dd>
-      <dt>{t("contact.profiles")}</dt>
-      {profiles.map(({ name, url }) => (
-        <dd>
-          <a href={url}>{name}</a>
-        </dd>
-      ))}
-    </dl>
-  </section>
-  <p>
-    <small>
-      © {new Date().getFullYear()} {t("site.name")}
-    </small>
-  </p>
+<footer style={`--edge-cols: ${edgeCols}; --stairs-cols: ${stairsCols}`}>
+  <div class="edge">
+    <Dither cols={edgeCols} rows={8} />
+  </div>
+  <div class="stairs">
+    <DitherStairs cols={stairsCols} />
+  </div>
+  <div class="container inner">
+    <section id="contact" aria-labelledby="contact-title">
+      <h2 id="contact-title" class="contact-title parallax">
+        {t("contact.title")}
+      </h2>
+      <dl class="contact-menu parallax">
+        <div>
+          <dt class="label">{t("contact.email")}</dt>
+          <dd>
+            <a href={`mailto:${email}`}>{email}</a>
+          </dd>
+        </div>
+        <div>
+          <dt class="label">{t("contact.profiles")}</dt>
+          {profiles.map(({ name, url, icon }) => (
+            <dd>
+              <a class="profile" href={url}>
+                <Icon name={icon} />
+                {name}
+              </a>
+            </dd>
+          ))}
+        </div>
+      </dl>
+    </section>
+
+    <div class="colophon parallax">
+      <p class="label">
+        <small>
+          © {new Date().getFullYear()} {t("site.name")}
+        </small>
+      </p>
+      <p class="built-with">
+        {t("footer.colophon")}
+        {builtWith.map(({ name, label }) => (
+          <Icon name={name} label={label} />
+        ))}
+      </p>
+      <!-- HTTP 418, for the coffee above. -->
+      <Barcode text="418 I'M A TEAPOT" class="barcode" />
+    </div>
+  </div>
 </footer>
+
+<style>
+  /* Full-width and inverted, so everything inside draws in currentColor. */
+  footer {
+    position: relative;
+    /* Percentages resolve against the page width, as the dither edge does. */
+    margin-block-start: calc(var(--space-3xl) + 100% / 16);
+    padding-block: var(--space-xl) var(--space-l);
+    color: var(--color-background);
+    background: var(--color-foreground);
+  }
+
+  .inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: end;
+    gap: var(--space-xl);
+    container-type: inline-size;
+  }
+
+  /* The page dissolves into the footer: a band of --edge-cols × 8 pixels
+     across the full width. */
+  .edge {
+    position: absolute;
+    inset-inline-start: 0;
+    min-inline-size: 100%;
+    inset-block-end: calc(100% - 1px);
+    color: var(--color-foreground);
+  }
+
+  /* A pixel staircase climbing out of the footer up the page's left edge, at
+     the edge's pixel size. It overlaps the band by 1px so the two read as one,
+     and only shows where the side margin is wide enough for it. */
+  .stairs {
+    display: none;
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-end: calc(100% - 1px);
+    inline-size: calc(100% * var(--stairs-cols) / var(--edge-cols));
+    color: var(--color-foreground);
+
+    @media (width >= 100rem) {
+      display: block;
+    }
+  }
+
+  section {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: end;
+    gap: var(--space-xl);
+  }
+
+  /* Side by side, the label lines up with the contact list through a subgrid. */
+  @media (width >= 56rem) {
+    .inner {
+      grid-template-columns: 1fr auto;
+    }
+
+    section {
+      grid-template-rows: subgrid;
+      grid-row: 1 / span 2;
+    }
+
+    .colophon {
+      grid-area: 2 / 2;
+    }
+  }
+
+  /* Fills the container's width, like the poster mastheads. */
+  h2 {
+    grid-column: 1 / -1;
+    font-size: 32cqi;
+    line-height: 0.8;
+    letter-spacing: -0.01em;
+  }
+
+  dl {
+    display: grid;
+    gap: var(--space-m);
+  }
+
+  dt {
+    opacity: 0.65;
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--text-xl);
+    letter-spacing: -0.02em;
+  }
+
+  dd a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+
+  /* A little smaller than the name, so the mark matches its cap height. */
+  dd .profile {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+
+    :global(.icon) {
+      font-size: 0.8em;
+    }
+  }
+
+  .contact-title {
+    --depth: -12;
+  }
+
+  .contact-menu {
+    --depth: -1;
+  }
+
+  /* The printer's label from the poster's corner. */
+  .colophon {
+    --depth: -1;
+    display: grid;
+    gap: var(--space-2xs);
+    inline-size: min(100%, 20rem);
+    padding: var(--space-s);
+    font-size: var(--text-sm);
+    border: 1px solid currentColor;
+    border-radius: var(--space-2xs);
+  }
+
+  .colophon .label {
+    white-space: nowrap;
+  }
+
+  .built-with {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2xs);
+
+    :global(.icon) {
+      font-size: 1.25em;
+    }
+  }
+
+  /* The box's padding is its quiet zone. */
+  .barcode {
+    block-size: var(--space-l);
+    margin-block-start: var(--space-2xs);
+  }
+</style>
