@@ -83,7 +83,7 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - Page files are thin per-locale wrappers: `src/pages/about.astro` and `src/pages/bg/about.astro` both render `<About lang="…" />` from `src/views/`. Case study routes call `getWorkPaths(lang)` from `src/lib/work.ts`.
 - Every page renders inside `src/layouts/Base.astro` (`<html lang>`, head, skip link, header, footer). Case studies use `src/layouts/CaseStudy.astro`.
 - UI strings live in `src/i18n/ui.ts`; `bg` must have every key `en` has. Get them with `const t = useTranslations(lang)`.
-- Build internal links with `getRelativeLocaleUrl(lang, path)` from `astro:i18n`, never by hand.
+- Build internal links with `getRelativeLocaleUrl(lang, path)` from `astro:i18n`, never by hand. Link to files in `public/` with `publicUrl()` from `src/lib/base.ts`. Both respect `base`, so the site also works from a subfolder.
 - The language switcher links to the same path in the other locale. Pass `translated={false}` to `Base` on pages without a translation; that also drops the `hreflang` alternates.
 - `Base` renders `hreflang` alternates (each locale plus `x-default` → English), `og:locale` and `og:locale:alternate` (codes in `ogLocales` in `ui.ts`). Absolute URLs come from `site` in `astro.config.mjs`, a placeholder until the domain is set.
 - Longer page copy is Markdown, one file per locale (About: `src/content/about/{en,bg}.md`).
@@ -132,6 +132,11 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - The current entries are Lorem Ipsum placeholders (Cyrillic pseudo-Latin text in `bg/`) with SVG images from `src/assets/placeholders/`. They exist to style against and get replaced by real case studies.
 - Work in progress lives in `drafts/` (or as `*.local.md`). A case study moves into `src/content/` and is committed only when it's finished and passes the content rules in `PLAN.local.md`.
 - When writing or editing a case study, check it against those rules and flag anything that crosses a line. When unsure, anonymise.
+
+## Preview deploy
+
+- `.github/workflows/deploy.yml` publishes a preview to GitHub Pages (`https://nikolaiwu.github.io/nikolaidot.com/`) on every push to `main`.
+- The workflow sets `SITE_URL` and `SITE_BASE` (read in `astro.config.mjs`) for the subfolder, and `NOINDEX` (an `astro:env` variable), which adds `<meta name="robots" content="noindex">`. Local builds keep the defaults: served from `/`, indexable, `site` still the placeholder.
 
 ## License
 
