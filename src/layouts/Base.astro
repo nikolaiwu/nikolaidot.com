@@ -25,6 +25,10 @@ const { lang, title, description, translated = true } = Astro.props;
 const t = useTranslations(lang);
 const path = getLocalePath(Astro.url.pathname, lang);
 const alternates = translated ? locales.filter((code) => code !== lang) : [];
+// Bulgarian pages also contain Latin text.
+const subsets = lang === "bg" ? ["cyrillic", "latin"] : ["latin"];
+const preload = (weight: number) =>
+  subsets.map((subset) => ({ subset, weight }));
 ---
 
 <html lang={lang}>
@@ -34,12 +38,13 @@ const alternates = translated ? locales.filter((code) => code !== lang) : [];
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
+    <!-- Preload only above-the-fold faces; bold body text and labels load on demand. -->
+    <Font cssVariable="--font-sofia-sans" preload={preload(400)} />
     <Font
-      cssVariable="--font-manrope"
-      preload={(lang === "bg" ? ["cyrillic", "latin"] : ["latin"]).map(
-        (subset) => ({ subset }),
-      )}
+      cssVariable="--font-sofia-sans-extra-condensed"
+      preload={preload(900)}
     />
+    <Font cssVariable="--font-martian-mono" />
     <title>{title ? `${title} — ${t("site.name")}` : t("site.name")}</title>
     <meta name="description" content={description ?? t("site.description")} />
     {alternates.length > 0 && (
@@ -64,7 +69,9 @@ const alternates = translated ? locales.filter((code) => code !== lang) : [];
     ))}
   </head>
   <body>
-    <a href="#main">{t("skip.link")}</a>
+    <a class="skip-link" href="#main">
+      {t("skip.link")}
+    </a>
     <Header lang={lang} translated={translated} />
     <main id="main">
       <slot />

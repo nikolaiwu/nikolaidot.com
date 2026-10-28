@@ -8,7 +8,8 @@
   --neutral-950: #161613;
 
   --blue-300: #8198f5;
-  --blue-500: #4361ee;
+  /* 4.76:1 against --neutral-100 both ways (text on it, and it as text). */
+  --blue-500: #3555ed;
 }
 
 /* Colour follows the system scheme. */
@@ -24,6 +25,11 @@
 
 /* Type scale, fluid from 360px to 1280px viewports. */
 :root {
+  --font-body: var(--font-sofia-sans);
+  --font-display: var(--font-sofia-sans-extra-condensed);
+  --weight-display: 900;
+  --font-mono: var(--font-martian-mono);
+
   --text-sm: 0.875rem;
   --text-base: clamp(1rem, 0.9511rem + 0.2174vi, 1.125rem);
   --text-lg: clamp(1.125rem, 1.0272rem + 0.4348vi, 1.375rem);
@@ -55,4 +61,19 @@
   --gutter: clamp(1rem, 0.2174rem + 3.4783vi, 3rem);
   --grid-columns: 12;
   --grid-gap: clamp(1rem, 0.6087rem + 1.7391vi, 2rem);
+
+  /* The sticky header: a gap above, then one row of cells inside a 1px border.
+     Sticky content sits below it, with the same gap again. */
+  --header-gap: var(--space-m);
+  --header-row: 2.75rem;
+  --header-height: calc(var(--header-gap) + var(--header-row) + 2px);
+  --sticky-top: calc(var(--header-height) + var(--header-gap));
+}
+
+/* On phones the nav wraps under the name: two rows. The rule between them sits
+   inside the name's cell, so it adds no height. */
+@media (width < 40rem) {
+  :root {
+    --header-height: calc(var(--header-gap) + 2 * var(--header-row) + 2px);
+  }
 }

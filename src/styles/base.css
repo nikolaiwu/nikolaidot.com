@@ -1,6 +1,65 @@
 body {
-  font-family: var(--font-manrope);
+  font-family: var(--font-body);
   font-size: var(--text-base);
   color: var(--color-foreground);
+  background-color: var(--color-background);
+}
+
+/* Print grain over everything: dark specks for the paper, light specks for
+   solid fills. The noise is only a mask, so the specks take their colour
+   from the tokens and follow the colour scheme. */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  mask-size: 180px;
+}
+
+body::before {
+  background: var(--color-foreground);
+  opacity: 0.15;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' seed='1' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 0 0 0 -2.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body::after {
   background: var(--color-background);
+  opacity: 0.15;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 0 0 0 -2.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* In-page links (#main, #contact) land below the sticky header, not under it. */
+html {
+  scroll-padding-block-start: var(--sticky-top);
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+::selection {
+  color: var(--color-background);
+  background: var(--color-accent);
+}
+
+.skip-link {
+  position: absolute;
+  inset-block-start: var(--space-s);
+  inset-inline-start: var(--space-s);
+  z-index: 101;
+  padding: var(--space-2xs) var(--space-s);
+  color: var(--color-background);
+  background: var(--color-foreground);
+  translate: 0 -200%;
+
+  &:focus-visible {
+    translate: none;
+  }
 }

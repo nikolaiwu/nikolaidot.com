@@ -1,0 +1,50 @@
+/* Scroll parallax. Elements drift by their own --depth: positive rises faster
+   than the page (closer), negative lags behind it (further back).
+   Scroll-driven animations only, so it runs off the main thread. Without
+   support, or under reduced motion, the page stays still.
+   Animates `translate`, which works in page space, so rotated elements
+   drift the right way. Don't combine with a `translate` of your own. */
+:root {
+  --parallax-distance: 1rem;
+}
+
+/* Centred on the viewport: in place halfway through, drifting either side. */
+@keyframes parallax {
+  from {
+    translate: 0 calc(var(--depth, 1) * var(--parallax-distance));
+  }
+
+  to {
+    translate: 0 calc(var(--depth, 1) * var(--parallax-distance) * -1);
+  }
+}
+
+/* For the first screen: in place on load, drifting over one screen of scroll. */
+@keyframes parallax-top {
+  to {
+    translate: 0 calc(var(--depth, 1) * var(--parallax-distance) * -2);
+  }
+}
+
+/* Longhands only: the minifier folds animation-timeline into an `animation`
+   shorthand, which browsers reject, dropping the whole declaration. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .parallax,
+    .parallax-top {
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+    }
+
+    .parallax {
+      animation-name: parallax;
+      animation-timeline: view();
+    }
+
+    .parallax-top {
+      animation-name: parallax-top;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+  }
+}

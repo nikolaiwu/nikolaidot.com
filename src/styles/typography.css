@@ -1,6 +1,20 @@
 h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+}
+
+/* Bulgarian capital forms in the display face: Л as Λ. */
+:lang(bg) {
+  font-feature-settings: "ss01";
+}
+
+h1,
 h2 {
   line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 h3 {
@@ -21,4 +35,120 @@ h3 {
 
 small {
   font-size: var(--text-sm);
+}
+
+/* Long-form Markdown: case studies and About. Global, since rendered Markdown
+   can't be reached by a component's scoped styles. */
+.prose {
+  counter-reset: section;
+  max-inline-size: 68ch;
+
+  > * + * {
+    margin-block-start: var(--space-s);
+  }
+
+  /* Numbered sections: 01, 02… in mono before each title. */
+  h2 {
+    counter-increment: section;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-s);
+    margin-block-start: var(--space-2xl);
+    font-size: var(--text-2xl);
+
+    &::before {
+      content: counter(section, decimal-leading-zero);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--color-accent);
+    }
+  }
+
+  h3 {
+    margin-block-start: var(--space-l);
+  }
+
+  ul {
+    display: grid;
+    gap: var(--space-2xs);
+    padding: 0;
+    list-style: none;
+  }
+
+  ul li {
+    position: relative;
+    padding-inline-start: 1.5em;
+
+    &::before {
+      content: "✱";
+      position: absolute;
+      inset-inline-start: 0;
+      color: var(--color-accent);
+    }
+  }
+
+  strong {
+    font-weight: 700;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  :not(pre) > code {
+    padding: 0.1em 0.3em;
+    background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+    border-radius: var(--space-3xs);
+  }
+
+  /* Shiki sets the colours; this frames it like a printed spec. */
+  pre {
+    padding: var(--space-m);
+    overflow-x: auto;
+    font-size: var(--text-sm);
+    border-radius: var(--space-2xs);
+  }
+
+  blockquote {
+    margin-block: var(--space-xl);
+    padding-inline-start: var(--space-m);
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-display);
+    line-height: var(--leading-tight);
+    text-transform: uppercase;
+    border-inline-start: 4px solid var(--color-accent);
+  }
+
+  img {
+    inline-size: 100%;
+    block-size: auto;
+    border: 1px solid var(--color-foreground);
+    border-radius: var(--space-2xs);
+  }
+
+  > p:has(> img) {
+    margin-block: var(--space-xl);
+  }
+}
+
+/* Small mono caps for meta text, poster captions and tags. */
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }

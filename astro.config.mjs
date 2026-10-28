@@ -9,15 +9,34 @@ export default defineConfig({
     defaultLocale: "en",
     routing: { prefixDefaultLocale: false },
   },
+  // Static weights: one small file per weight and subset, only the ones in use.
   fonts: [
     {
       provider: fontProviders.fontsource(),
-      name: "Manrope",
-      cssVariable: "--font-manrope",
-      weights: ["200 800"],
+      name: "Sofia Sans",
+      cssVariable: "--font-sofia-sans",
+      weights: [400, 700],
       styles: ["normal"],
       subsets: ["latin", "cyrillic"],
       fallbacks: ["sans-serif"],
+    },
+    {
+      provider: fontProviders.fontsource(),
+      name: "Sofia Sans Extra Condensed",
+      cssVariable: "--font-sofia-sans-extra-condensed",
+      weights: [900],
+      styles: ["normal"],
+      subsets: ["latin", "cyrillic"],
+      fallbacks: ["sans-serif"],
+    },
+    {
+      provider: fontProviders.fontsource(),
+      name: "Martian Mono",
+      cssVariable: "--font-martian-mono",
+      weights: [500],
+      styles: ["normal"],
+      subsets: ["latin", "cyrillic"],
+      fallbacks: ["monospace"],
     },
   ],
 });
