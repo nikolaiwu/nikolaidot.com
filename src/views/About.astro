@@ -6,6 +6,7 @@ import PillLink from "../components/PillLink.astro";
 import SpecSheet from "../components/SpecSheet.astro";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Base from "../layouts/Base.astro";
+import { publicUrl } from "../lib/base";
 import { getWork } from "../lib/work";
 
 interface Props {
@@ -33,7 +34,7 @@ const stack = [...new Set(work.flatMap(({ data }) => data.stack))];
     <div class="card">
       <SpecSheet lang={lang} stack={stack.slice(0, 5)} />
       <PillLink
-        href="/cv-nikolai-vuchkov-10.2026-p.pdf"
+        href={publicUrl("cv-nikolai-vuchkov-10.2026-p.pdf")}
         hreflang="en"
         arrow="down"
         solid

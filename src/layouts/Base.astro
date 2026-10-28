@@ -1,5 +1,6 @@
 ---
 import { Font } from "astro:assets";
+import { NOINDEX } from "astro:env/server";
 import { getAbsoluteLocaleUrl } from "astro:i18n";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
@@ -11,6 +12,7 @@ import {
   useTranslations,
   type Lang,
 } from "../i18n/ui";
+import { publicUrl } from "../lib/base";
 import "../styles/main.css";
 
 interface Props {
@@ -35,9 +37,10 @@ const preload = (weight: number) =>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href={publicUrl("favicon.svg")} />
+    <link rel="icon" href={publicUrl("favicon.ico")} />
     <meta name="generator" content={Astro.generator} />
+    {NOINDEX && <meta name="robots" content="noindex" />}
     <!-- Preload only above-the-fold faces; bold body text and labels load on demand. -->
     <Font cssVariable="--font-sofia-sans" preload={preload(400)} />
     <Font

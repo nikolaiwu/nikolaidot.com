@@ -1,9 +1,21 @@
 // @ts-check
-import { defineConfig, fontProviders } from "astro/config";
+import { defineConfig, envField, fontProviders } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://example.com",
+  // Overridden by the GitHub Pages preview build, served from a subfolder.
+  site: process.env.SITE_URL ?? "https://example.com",
+  base: process.env.SITE_BASE,
+  env: {
+    schema: {
+      // Keeps preview builds out of search engines.
+      NOINDEX: envField.boolean({
+        context: "server",
+        access: "public",
+        default: false,
+      }),
+    },
+  },
   i18n: {
     locales: ["en", "bg"],
     defaultLocale: "en",
