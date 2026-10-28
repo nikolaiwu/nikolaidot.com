@@ -1,10 +1,15 @@
 ---
 import { getRelativeLocaleUrl } from "astro:i18n";
+import DotGrid from "../components/DotGrid.astro";
 import Hero from "../components/Hero.astro";
-import WorkCard from "../components/WorkCard.astro";
+import PillLink from "../components/PillLink.astro";
+import SectionHead from "../components/SectionHead.astro";
+import SpecSheet from "../components/SpecSheet.astro";
+import WorkGrid from "../components/WorkGrid.astro";
 import { email } from "../data/contact";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Base from "../layouts/Base.astro";
+import { pixelText } from "../lib/pixel-font";
 import { getWork } from "../lib/work";
 
 interface Props {
@@ -13,25 +18,292 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
-const featured = (await getWork(lang)).filter(({ data }) => data.featured);
+const work = await getWork(lang);
+const featured = work.filter(({ data }) => data.featured);
+const stack = [...new Set(work.flatMap(({ data }) => data.stack))];
+
+const stats = [
+  { value: "17", label: t("stats.years.label") },
+  {
+    value: String(work.length).padStart(2, "0"),
+    label: t("stats.projects.label"),
+  },
+  { value: "100", label: t("stats.lighthouse.label") },
+];
 ---
 
 <Base lang={lang}>
   <Hero lang={lang} />
-  <section class="container" aria-labelledby="featured-title">
-    <h2 id="featured-title">{t("home.featured")}</h2>
-    <ul>
-      {featured.map((entry) => (
+
+  <section class="container" aria-label={t("work.stack")}>
+    <div class="ticker parallax">
+      <div class="track">
+        {[false, true].map((copy) => (
+          <ul class="label" aria-hidden={copy ? "true" : undefined}>
+            {stack.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="numbers container" aria-labelledby="numbers-title">
+    <div class="head grid">
+      <h2 id="numbers-title" class="numbers-title parallax">
+        {t("home.numbersTitle")}
+      </h2>
+      <div class="sheet parallax">
+        <SpecSheet lang={lang} stack={stack.slice(0, 5)} />
+      </div>
+    </div>
+    <ul class="stats">
+      {stats.map(({ value, label }) => (
         <li>
-          <WorkCard entry={entry} lang={lang} />
+          <p class="value">{value}</p>
+          <p>{label}</p>
         </li>
       ))}
     </ul>
-    <a href={getRelativeLocaleUrl(lang, "work")}>{t("home.allWork")}</a>
   </section>
-  <section class="container" aria-labelledby="cta-title">
-    <h2 id="cta-title">{t("home.contactTitle")}</h2>
-    <p>{t("home.contactText")}</p>
-    <a href={`mailto:${email}`}>{t("home.contactLink")}</a>
+
+  <section class="featured container" aria-labelledby="featured-title">
+    <SectionHead id="featured-title" class="parallax" sticky>
+      {t("home.featured")}
+      <PillLink slot="action" href={getRelativeLocaleUrl(lang, "work")}>
+        {t("home.allWork")}
+      </PillLink>
+    </SectionHead>
+    <WorkGrid entries={featured} lang={lang} />
+  </section>
+
+  <section class="cta container" aria-labelledby="cta-title">
+    <div class="box parallax">
+      <!-- Bookends the hero: the same dot grid, spelling a greeting. -->
+      <div class="greeting">
+        <DotGrid
+          color="var(--color-foreground)"
+          spacing={5}
+          size={2.5}
+          opacity={0.55}
+          density={0.5}
+          clustering={0.5}
+          clusterSize={14}
+          hoverRadius={160}
+          hoverScale={2}
+          hoverOpacity={1}
+          glyph={pixelText(t("home.contactGreeting"))}
+          repel={16}
+        />
+      </div>
+      <div class="body">
+        <h2 id="cta-title">{t("home.contactTitle")}</h2>
+        <p>{t("home.contactText")}</p>
+        <PillLink href={`mailto:${email}`} solid>
+          {t("home.contactLink")}
+        </PillLink>
+      </div>
+    </div>
   </section>
 </Base>
+
+<style>
+  section + section {
+    margin-block-start: var(--space-3xl);
+  }
+
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Sticks beside the spec card only when they sit side by side. */
+  @media (width >= 64rem) {
+    .numbers-title {
+      position: sticky;
+      inset-block-start: var(--sticky-top);
+    }
+  }
+
+  /* Two identical lists; sliding by half loops seamlessly. */
+  .ticker {
+    --depth: -2.5;
+    overflow: hidden;
+    border-block: 1px solid var(--color-foreground);
+    mask: linear-gradient(
+      90deg,
+      transparent,
+      #000 var(--space-2xl) calc(100% - var(--space-2xl)),
+      transparent
+    );
+  }
+
+  .track {
+    display: flex;
+    inline-size: max-content;
+    animation: ticker 40s linear infinite;
+
+    &:hover {
+      animation-play-state: paused;
+    }
+  }
+
+  .ticker ul {
+    display: flex;
+    gap: var(--space-xl);
+    padding-block: var(--space-m);
+    padding-inline-end: var(--space-xl);
+    font-weight: 500;
+  }
+
+  .ticker li::before {
+    content: "✱";
+    margin-inline-end: var(--space-2xs);
+    color: var(--color-accent);
+  }
+
+  @keyframes ticker {
+    to {
+      translate: -50% 0;
+    }
+  }
+
+  .numbers {
+    /* Stacked: heading, stats, then the spec card. */
+    @media (width < 56rem) {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  .numbers .head {
+    align-items: start;
+  }
+
+  /* Drifts against the heading. */
+  .numbers .sheet {
+    --depth: -3.1;
+  }
+
+  .numbers h2 {
+    max-inline-size: 14ch;
+    font-size: var(--text-3xl);
+    line-height: 0.95;
+  }
+
+  @media (width >= 56rem) {
+    .numbers h2 {
+      grid-column: span 7;
+    }
+
+    .numbers .sheet {
+      grid-column: 8 / -1;
+    }
+  }
+
+  @media (width < 56rem) {
+    .numbers .head {
+      display: contents;
+    }
+
+    .numbers .sheet {
+      order: 1;
+      margin-block-start: var(--space-xl);
+    }
+  }
+
+  /* Stacked, then three across: never a 2 + 1 row. */
+  .stats {
+    display: grid;
+    margin-block-start: var(--space-xl);
+    border: 1px solid var(--color-foreground);
+    border-radius: var(--space-s);
+    /* Clips the cells' divider shadows to the rounded corners. */
+    overflow: clip;
+
+    @media (width >= 40rem) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .stats li {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-xl);
+    padding: var(--space-m);
+    /* Collapses neighbouring borders whether the cells sit in a row or a column. */
+    box-shadow: -1px -1px 0 0 var(--color-foreground);
+  }
+
+  .stats .value {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    font-weight: var(--weight-display);
+    line-height: 0.9;
+  }
+
+  .stats p:last-child {
+    max-inline-size: 26ch;
+    font-size: var(--text-sm);
+  }
+
+  /* Greeting on top, then the text; side by side from 48rem. */
+  .cta .box {
+    --depth: -4;
+    display: grid;
+    border: 1px solid var(--color-foreground);
+    border-radius: var(--space-s);
+    overflow: clip;
+  }
+
+  /* The dot grid fills it and fades out towards the text. */
+  .cta .greeting {
+    position: relative;
+    isolation: isolate;
+    min-block-size: 16rem;
+    mask-image: linear-gradient(#000 60%, transparent);
+  }
+
+  .cta .body {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: var(--space-m);
+    padding: var(--space-l);
+  }
+
+  @media (width >= 48rem) {
+    .cta .box {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .cta .greeting {
+      min-block-size: 22rem;
+      mask-image: linear-gradient(to right, #000 80%, transparent);
+    }
+
+    .cta .body {
+      justify-items: end;
+      text-align: end;
+    }
+  }
+
+  .cta h2 {
+    max-inline-size: 16ch;
+    font-size: var(--text-3xl);
+    line-height: 0.95;
+  }
+
+  .cta p {
+    max-inline-size: 40ch;
+    color: var(--color-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .track {
+      animation: none;
+    }
+  }
+</style>
