@@ -62,6 +62,8 @@ const alternates = locales.filter((code) => code !== lang);
     top: 0;
     /* Above the sticky section titles, which are above the content. */
     z-index: 2;
+    /* Stays put while the page under it transitions. */
+    view-transition-name: site-header;
     padding-block: var(--header-gap) 0;
     background-color: var(--color-background);
   }

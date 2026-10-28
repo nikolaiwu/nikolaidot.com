@@ -48,3 +48,46 @@
     }
   }
 }
+
+/* Page transitions: native cross-document view transitions, so no JS, and
+   browsers without support navigate normally. Named elements (the header,
+   work covers) morph on their own; the rest of the page fades and slides. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+:root {
+  --page-transition-duration: 0.45s;
+  --page-transition-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--page-transition-duration);
+  animation-timing-function: var(--page-transition-easing);
+}
+
+/* The old page leaves quickly, so the two never read as one. */
+::view-transition-old(root) {
+  animation: page-out calc(var(--page-transition-duration) / 2) ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: page-in var(--page-transition-duration)
+    var(--page-transition-easing) both;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+    translate: 0 calc(var(--space-l) * -1);
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    translate: 0 var(--space-l);
+  }
+}

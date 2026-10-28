@@ -21,7 +21,8 @@ const { title, client, role, summary, cover } = entry.data;
     <span class="index">{String(index).padStart(2, "0")}</span>
     <WorkYear entry={entry} lang={lang} />
   </p>
-  <div class="media">
+  <!-- Morphs into the case study's cover on navigation. -->
+  <div class="media" style={{ viewTransitionName: `cover-${getSlug(entry)}` }}>
     <Image src={cover} alt="" />
   </div>
   <h3>

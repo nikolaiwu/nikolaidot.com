@@ -36,7 +36,10 @@ const number = String(index + 1).padStart(2, "0");
     </PageHeader>
 
     <div class="container">
-      <div class="cover parallax">
+      <div
+        class="cover parallax"
+        style={{ viewTransitionName: `cover-${getSlug(entry)}` }}
+      >
         <Image src={cover} alt="" />
       </div>
 
