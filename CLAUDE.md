@@ -66,6 +66,8 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - Parallax animates `translate`, so a parallax element can't set its own `translate`, and a sticky one should drop it (`animation: none`).
 - Scroll-driven animations only. Without support, or under `prefers-reduced-motion: reduce`, nothing moves. Every transition has a reduced-motion fallback.
 - Write scroll-driven animations as longhands (`animation-name`, `animation-timeline`, …), never the `animation` shorthand. The build's CSS minifier (Lightning CSS) folds `animation-timeline` into the shorthand, which browsers reject, dropping the whole declaration.
+- Page transitions are native cross-document view transitions (`@view-transition` in `motion.css`), CSS only, off under reduced motion. No `<ClientRouter />`. The old page fades up and out, the new one fades up and in.
+- Elements that persist or morph across pages get a `view-transition-name`: the header (`site-header`) and each work cover (`cover-<slug>`, inline on `WorkCard` and `CaseStudy`). A name must be unique on a page, or the browser skips the whole transition, so render each work card at most once per page.
 
 ## Fonts
 
