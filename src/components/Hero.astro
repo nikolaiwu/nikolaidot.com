@@ -1,7 +1,12 @@
 ---
 import { getRelativeLocaleUrl } from "astro:i18n";
+import { profiles } from "../data/contact";
 import { useTranslations, type Lang } from "../i18n/ui";
+import Arrow from "./Arrow.astro";
 import DotGrid from "./DotGrid.astro";
+import Icon from "./Icon.astro";
+import Kicker from "./Kicker.astro";
+import ScrambleText from "./ScrambleText.astro";
 
 interface Props {
   lang: Lang;
@@ -9,35 +14,561 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+
+// Hotspots in the dot grid, placed clear of the tag, figure and asterisk.
+// Each one retitles the figure with its word; the first word is the resting one.
+const zones = [
+  { x: 0.36, y: 0.62, r: 0.1 },
+  { x: 0.74, y: 0.74, r: 0.09 },
+  { x: 0.3, y: 0.3, r: 0.07 },
+  { x: 0.54, y: 0.9, r: 0.07 },
+];
+const words = [
+  t("hero.tag"),
+  t("hero.zone.1"),
+  t("hero.zone.2"),
+  t("hero.zone.3"),
+  t("hero.zone.4"),
+];
+const titles = words.map(
+  (word, i) => `${t("hero.figureNumber")} 0${i + 1} — ${word}`,
+);
+
+// One rising chart per word, three curves each. A curve is a single cubic
+// Bézier as [x0, y0, x1, y1, x2, y2, x3, y3] in the 120 × 64 viewBox; y points
+// down, so smaller is higher. The shared shape lets the script morph between them.
+const charts = [
+  // Interfaces: S-curves, slow start then growth.
+  [
+    [4, 56, 40, 56, 60, 10, 116, 8],
+    [4, 58, 44, 58, 70, 24, 116, 22],
+    [4, 59, 50, 59, 80, 38, 116, 36],
+  ],
+  // Dashboards: steady climb.
+  [
+    [4, 50, 40, 40, 80, 22, 116, 10],
+    [4, 54, 40, 46, 80, 34, 116, 24],
+    [4, 57, 40, 52, 80, 46, 116, 38],
+  ],
+  // Real-time: an instant response that holds.
+  [
+    [4, 58, 14, 6, 30, 10, 116, 8],
+    [4, 59, 18, 20, 40, 22, 116, 20],
+    [4, 59, 24, 34, 50, 34, 116, 32],
+  ],
+  // Data viz: exponential.
+  [
+    [4, 58, 60, 58, 100, 40, 116, 4],
+    [4, 59, 70, 59, 104, 46, 116, 20],
+    [4, 59, 80, 59, 108, 52, 116, 36],
+  ],
+  // Motion: overshoot, then settle.
+  [
+    [4, 58, 36, -34, 64, 34, 116, 12],
+    [4, 58, 40, -14, 68, 40, 116, 24],
+    [4, 59, 44, 6, 72, 46, 116, 36],
+  ],
+];
+
+const toPath = ([x0, y0, x1, y1, x2, y2, x3, y3]: number[]) =>
+  `M${x0} ${y0} C ${x1} ${y1}, ${x2} ${y2}, ${x3} ${y3}`;
 ---
 
-<section class="hero">
-  <DotGrid />
-  <div class="container">
-    <p class="my-name">{t("site.name")}</p>
-    <h1>{t("hero.title")}</h1>
-    <p>{t("hero.text")}</p>
-    <a href={getRelativeLocaleUrl(lang, "work")}>{t("hero.link")}</a>
+<section class="hero container" aria-labelledby="hero-title">
+  <div class="masthead">
+    <Kicker aria-hidden="true">{t("hero.kicker")}</Kicker>
+    <p class="my-name parallax-top">{t("site.name")}</p>
+    <div class="meta label parallax-top">
+      <p>{t("hero.role")}</p>
+      <ul>
+        {profiles.map(({ name, url, icon }) => (
+          <li>
+            <a href={url}>
+              <Icon name={icon} />
+              {name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel">
+    <!-- Decorative, except the ✱ button, which steps through the hotspots for
+         touch and keyboard users, who can't hover. -->
+    <div class="visual">
+      <DotGrid
+        color="var(--color-foreground)"
+        spacing={5}
+        size={2.5}
+        opacity={0.55}
+        density={0.5}
+        clustering={0.5}
+        clusterSize={14}
+        hoverRadius={160}
+        hoverScale={2}
+        hoverOpacity={1}
+        repel={16}
+        zonePull={0.3}
+        zones={zones}
+      />
+      <span
+        class="tag label"
+        data-zones={JSON.stringify(zones)}
+        aria-hidden="true"
+      >
+        <span>
+          X <span class="x">00</span>
+        </span>
+        <span>
+          Y <span class="y">00</span>
+        </span>
+      </span>
+      <button class="asterisk" type="button" aria-label={t("hero.next")}>
+        <span aria-hidden="true">✱</span>
+      </button>
+      <span
+        class="figure"
+        style={`--title-length: ${Math.max(...titles.map((title) => title.length))}`}
+        data-titles={JSON.stringify(titles)}
+        aria-hidden="true"
+      >
+        <span class="label">
+          <ScrambleText text={titles[0]} />
+        </span>
+        <svg
+          viewBox="0 0 120 64"
+          fill="none"
+          stroke="currentColor"
+          data-charts={JSON.stringify(charts)}
+        >
+          {charts[0].map((curve) => (
+            <path class="curve" d={toPath(curve)} />
+          ))}
+          <path d="M4 4 V 60 H 116" stroke-width="0.75" />
+        </svg>
+        <span>{t("hero.hint")}</span>
+      </span>
+    </div>
+
+    <div class="copy">
+      <h1 id="hero-title">{t("hero.title")}</h1>
+      <p>{t("hero.text")}</p>
+      <a class="label" href={getRelativeLocaleUrl(lang, "work")}>
+        {t("hero.link")} <Arrow direction="down" />
+      </a>
+    </div>
+  </div>
+
+  <!-- A loading bar that fills once the page has loaded, then shows this
+       visit's real load time. -->
+  <div class="console" aria-hidden="true">
+    <span class="pill">
+      <span class="readout label">
+        {t("hero.loaded")} <span class="time"></span>
+      </span>
+    </span>
   </div>
 </section>
 
 <style>
   .hero {
-    --name-size: var(--text-display);
-    --name-leading: 1.2;
-    position: relative;
-    /* Keeps the fixed name above the content that follows. */
-    z-index: 1;
-    isolation: isolate;
-    /* The name blends with the hero only, so it needs an opaque backdrop. */
-    background: var(--color-background);
+    padding-block-end: var(--space-2xl);
+  }
+
+  /* The name scales with the masthead, not the viewport, so it always fills the row. */
+  .masthead {
+    container-type: inline-size;
+    padding-block: var(--space-l) var(--space-m);
   }
 
   .my-name {
-    position: relative;
-    font-size: var(--name-size);
-    font-weight: 800;
-    line-height: var(--name-leading);
+    --depth: -5;
+    /* Room below for descenders (Д, У), which hang past the tight line height. */
+    margin-block: var(--space-s) 0.1em;
+    font-family: var(--font-display);
+    font-size: 16.6cqi;
+    font-weight: var(--weight-display);
+    line-height: 0.85;
+    letter-spacing: -0.01em;
     text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .meta {
+    --depth: -2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-xs) var(--space-l);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: none;
+  }
+
+  .meta ul {
+    display: flex;
+    gap: var(--space-s);
+    padding: 0;
+    list-style: none;
+  }
+
+  .meta li + li::before {
+    content: "/";
+    margin-inline-end: var(--space-s);
+    color: var(--color-muted);
+  }
+
+  .meta a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+
+  .panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    border: 1px solid var(--color-foreground);
+    border-radius: var(--space-s);
+    /* Clips the dot grid and the link's hover fill to the rounded corners. */
+    overflow: hidden;
+    container: panel / inline-size;
+  }
+
+  .visual {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-block-size: 30rem;
+    color: var(--color-foreground);
+    container-type: inline-size;
+    /* A plus, to go with the coordinates in the tag. */
+    cursor: crosshair;
+  }
+
+  /* Physical insets: logical ones would follow the tag's own vertical writing mode. */
+  .tag {
+    position: absolute;
+    inset: var(--space-m) auto auto var(--space-m);
+    display: flex;
+    gap: var(--space-s);
+    /* Block size is the width in vertical writing; without this it stretches. */
+    block-size: max-content;
+    min-inline-size: 12rem;
+    padding: var(--space-s) var(--space-2xs);
+    background: var(--color-background);
+    border: 1px solid currentColor;
+    /* Reads bottom to top, starting at the bottom. */
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+  }
+
+  .asterisk {
+    position: absolute;
+    inset-block-end: var(--space-m);
+    inset-inline-start: var(--space-m);
+    display: grid;
+    place-items: center;
+    inline-size: var(--space-2xl);
+    aspect-ratio: 1;
+    font-size: var(--text-2xl);
+    line-height: 1;
+    color: var(--color-background);
+    background: var(--color-accent);
+    border: 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: var(--color-foreground);
+    }
+  }
+
+  .asterisk span {
+    transition: scale 0.15s;
+  }
+
+  .asterisk:active span {
+    scale: 0.8;
+  }
+
+  .figure {
+    position: absolute;
+    inset-block-start: var(--space-m);
+    inset-inline-end: var(--space-m);
+    display: grid;
+    gap: var(--space-2xs);
+    /* As wide as the title; the hint wraps to fit. */
+    inline-size: min-content;
+    padding: var(--space-s);
+    /* Shrinks in a narrow grid, so the one-line title clears the tag. */
+    font-size: min(var(--text-sm), 3.5cqi);
+    line-height: var(--leading-snug);
+    color: var(--color-background);
+    background: var(--color-accent);
+  }
+
+  /* One line, wide enough for the longest title so the card keeps its size
+       as titles change. Mono, so every character is 1ch plus the letter spacing. */
+  .figure .label {
+    min-inline-size: calc(var(--title-length) * (1ch + 0.06em));
+    font-size: inherit;
+    white-space: nowrap;
+  }
+
+  .figure svg {
+    inline-size: 100%;
+    stroke-width: 1.25;
+  }
+
+  .copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+    padding: var(--space-l) var(--space-l) 0;
+    border-inline-start: 1px solid var(--color-foreground);
+  }
+
+  .copy h1 {
+    font-size: var(--text-3xl);
+    line-height: 0.95;
+  }
+
+  .copy p {
+    max-inline-size: 36ch;
+    color: var(--color-muted);
+  }
+
+  .copy a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-start: auto;
+    margin-inline: calc(-1 * var(--space-l));
+    padding: var(--space-m) var(--space-l);
+    text-decoration: none;
+    border-block-start: 1px solid var(--color-foreground);
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+
+    &:hover {
+      color: var(--color-background);
+      background: var(--color-foreground);
+    }
+  }
+
+  /* Two 22rem columns need 44rem; below that the copy stacks under the visual. */
+  @container panel (width < 44rem) {
+    .copy {
+      border-inline-start: 0;
+      border-block-start: 1px solid var(--color-foreground);
+    }
+  }
+
+  .console {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-l);
+    margin-block-start: calc(-1 * var(--space-s));
+
+    &::before,
+    &::after {
+      content: "";
+      inline-size: var(--space-2xs);
+      aspect-ratio: 1;
+      background: var(--color-foreground);
+      border-radius: 50%;
+    }
+  }
+
+  .pill {
+    --fill: 0.8s;
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: min(22rem, 70%);
+    block-size: var(--space-l);
+    overflow: hidden;
+    background: var(--color-background);
+    border: 1px solid var(--color-foreground);
+    border-radius: var(--space-l);
+    /* Sets it apart from the line it sits on. */
+    box-shadow: 0 0 0 1px var(--color-background);
+
+    /* The fill, left to right across the whole pill, then fading to the
+       foreground so the finished pill reads inverted. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--color-accent);
+      transform-origin: left;
+      scale: 0 1;
+      transition:
+        scale var(--fill) cubic-bezier(0.6, 0, 0.2, 1),
+        background-color 0.4s var(--fill);
+    }
+  }
+
+  .loaded::before {
+    scale: 1;
+    background: var(--color-foreground);
+  }
+
+  /* Over the fill, appearing once it has finished. */
+  .readout {
+    position: relative;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    color: var(--color-background);
+    opacity: 0;
+    transition: opacity 0.3s var(--fill);
+  }
+
+  .loaded .readout {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pill::before,
+    .readout,
+    .asterisk span {
+      transition: none;
+    }
   }
 </style>
+
+<script>
+  type ScrambleText = HTMLElement & { text: string };
+  type Chart = number[][];
+
+  // Time to morph between charts, in ms.
+  const MORPH = 450;
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+  const toPath = ([x0, y0, x1, y1, x2, y2, x3, y3]: number[]) =>
+    `M${x0} ${y0} C ${x1} ${y1}, ${x2} ${y2}, ${x3} ${y3}`;
+  const easeOut = (t: number) => 1 - (1 - t) ** 3;
+
+  // Hovering a dot grid zone retypes the figure title and morphs its chart.
+  // Index 0 is the resting state.
+  const hero = document.querySelector(".hero")!;
+  const grid = hero.querySelector<HTMLElement & { zone: number }>("dot-grid")!;
+  const tag = hero.querySelector<HTMLElement>(".tag")!;
+  const figure = hero.querySelector<HTMLElement>(".figure")!;
+  const figureText = figure.querySelector<ScrambleText>("scramble-text")!;
+  const svg = figure.querySelector("svg")!;
+  const curves = [...svg.querySelectorAll(".curve")];
+
+  const zones: { x: number; y: number }[] = JSON.parse(tag.dataset.zones!);
+  const titles: string[] = JSON.parse(figure.dataset.titles!);
+  const charts: Chart[] = JSON.parse(svg.dataset.charts!);
+
+  let shown = charts[0];
+  let morph = 0;
+
+  const draw = (chart: Chart) => {
+    shown = chart;
+    curves.forEach((curve, i) => curve.setAttribute("d", toPath(chart[i])));
+  };
+
+  // Every chart shares one shape, so morphing blends the numbers. Starting
+  // from what's on screen keeps an interrupted morph smooth.
+  function morphTo(target: Chart) {
+    cancelAnimationFrame(morph);
+    if (reducedMotion.matches) return draw(target);
+
+    const from = shown;
+    let start = 0;
+    const step = (now: number) => {
+      start ||= now;
+      const t = easeOut(Math.min((now - start) / MORPH, 1));
+      draw(
+        from.map((curve, i) =>
+          curve.map((value, j) => value + (target[i][j] - value) * t),
+        ),
+      );
+      if (t < 1) morph = requestAnimationFrame(step);
+    };
+    morph = requestAnimationFrame(step);
+  }
+
+  // Steps rest → each zone → rest, lighting the zone as if hovered.
+  const next = hero.querySelector(".asterisk")!;
+  const zoneCount = zones.length;
+  next.addEventListener("click", () => {
+    const zone = grid.zone + 1;
+    grid.zone = zone < zoneCount ? zone : -1;
+  });
+
+  // Load time from Navigation Timing. loadEventEnd is only set once the load
+  // handlers have run, so read it on the next task.
+  const pill = hero.querySelector<HTMLElement>(".pill")!;
+  const time = pill.querySelector(".time")!;
+  const seconds = new Intl.NumberFormat(document.documentElement.lang, {
+    style: "unit",
+    unit: "second",
+    unitDisplay: "narrow",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const showLoadTime = () =>
+    setTimeout(() => {
+      const [entry] = performance.getEntriesByType(
+        "navigation",
+      ) as PerformanceNavigationTiming[];
+      if (!entry?.loadEventEnd) return;
+      time.textContent = seconds.format(entry.loadEventEnd / 1000);
+      pill.classList.add("loaded");
+    });
+
+  if (document.readyState === "complete") showLoadTime();
+  else addEventListener("load", showLoadTime, { once: true });
+
+  // The tag reads out the pointer's position over the grid, 00–99 on each
+  // axis, snaps to a zone's centre while one is lit, and rests at 00.
+  const x = tag.querySelector(".x")!;
+  const y = tag.querySelector(".y")!;
+  const coordinate = (value: number) =>
+    String(Math.min(Math.max(Math.round(value * 100), 0), 99)).padStart(2, "0");
+  let activeZone = -1;
+  // Last pointer position over the grid, as fractions; 0 when it's away.
+  let pointer = { x: 0, y: 0 };
+
+  function showCoordinates({ x: fractionX, y: fractionY } = pointer) {
+    x.textContent = coordinate(fractionX);
+    y.textContent = coordinate(fractionY);
+  }
+
+  const visual = hero.querySelector<HTMLElement>(".visual")!;
+  visual.addEventListener("pointermove", (event) => {
+    const rect = grid.getBoundingClientRect();
+    pointer = {
+      x: (event.clientX - rect.left) / rect.width,
+      y: (event.clientY - rect.top) / rect.height,
+    };
+    if (activeZone < 0) showCoordinates();
+  });
+  visual.addEventListener("pointerleave", () => {
+    pointer = { x: 0, y: 0 };
+    if (activeZone < 0) showCoordinates();
+  });
+
+  grid.addEventListener("zonechange", (event) => {
+    const { zone } = (event as CustomEvent<{ zone: number }>).detail;
+    const index = zone + 1;
+    figureText.text = titles[index];
+    morphTo(charts[index]);
+    activeZone = zone;
+    showCoordinates(zones[zone]);
+  });
+</script>

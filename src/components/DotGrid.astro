@@ -1,4 +1,13 @@
 ---
+interface Zone {
+  /** Centre, as a 0–1 fraction of the width. */
+  x: number;
+  /** Centre, as a 0–1 fraction of the height. */
+  y: number;
+  /** Radius, as a fraction of the shorter side. */
+  r: number;
+}
+
 interface Props {
   /** Distance between dot centres, in px. */
   spacing?: number;
@@ -6,6 +15,8 @@ interface Props {
   size?: number;
   /** Any CSS colour. */
   color?: string;
+  /** Colour that hovered dots and zones fade towards. Any CSS colour. */
+  accent?: string;
   /** Dot opacity at rest, 0–1. */
   opacity?: number;
   /** Share of grid cells that get a dot, 0–1. */
@@ -24,27 +35,50 @@ interface Props {
   hoverOpacity?: number;
   /** Share of the remaining distance to the hover state covered each frame, 0–1. 1 is instant. */
   easing?: number;
+  /** Hotspots that light up under the pointer and fire a `zonechange` event. */
+  zones?: Zone[];
+  /** Accent mix of zone dots at rest, 0–1, so the zones read as interactive. */
+  zoneTint?: number;
+  /** Extra share of cells that get a dot inside a zone, 0–1. */
+  zoneDensity?: number;
+  /** A bitmap ("1" and "0" rows) drawn centred in solid accent dots. */
+  glyph?: string[];
+  /** Glyph height, as a fraction of the grid's height. */
+  glyphSize?: number;
+  /** Distance the dot under the cursor is pushed away, in px. */
+  repel?: number;
+  /** Share of the way an active zone's dots move towards its centre, 0–1. */
+  zonePull?: number;
 }
 
 const {
   spacing = 6,
   size = 3,
   color = "var(--color-accent)",
+  accent = "var(--color-accent)",
   opacity = 0.1,
   density = 0.45,
   clustering = 0.1,
   clusterSize = 1,
-  seed = 1,
+  seed,
   hoverRadius = 120,
   hoverScale = 1.6,
   hoverOpacity = 0.3,
   easing = 0.2,
+  zones = [],
+  zoneTint = 0,
+  zoneDensity = 0.35,
+  glyph = [],
+  glyphSize = 0.6,
+  repel = 0,
+  zonePull = 0,
 } = Astro.props;
 
 const config = {
   spacing,
   size,
   color,
+  accent,
   opacity,
   density,
   clustering,
@@ -54,6 +88,13 @@ const config = {
   hoverScale,
   hoverOpacity,
   easing,
+  zones,
+  zoneTint,
+  zoneDensity,
+  glyph,
+  glyphSize,
+  repel,
+  zonePull,
 };
 ---
 
@@ -78,10 +119,13 @@ const config = {
 </style>
 
 <script>
+  type Zone = { x: number; y: number; r: number };
+
   type Config = {
     spacing: number;
     size: number;
     color: string;
+    accent: string;
     opacity: number;
     density: number;
     clustering: number;
@@ -91,6 +135,13 @@ const config = {
     hoverScale: number;
     hoverOpacity: number;
     easing: number;
+    zones: Zone[];
+    zoneTint: number;
+    zoneDensity: number;
+    glyph: string[];
+    glyphSize: number;
+    repel: number;
+    zonePull: number;
   };
 
   const ALPHA_LEVELS = 64;
@@ -126,12 +177,25 @@ const config = {
     #ctx!: CanvasRenderingContext2D;
     #seed = 0;
     #color = "";
+    #accent = "";
     #width = 0;
     #height = 0;
     #xs = new Float32Array();
     #ys = new Float32Array();
     // 0 at rest, 1 directly under the cursor.
     #intensities = new Float32Array();
+    // Zone index per dot, -1 outside every zone.
+    #zoneOf = new Int8Array();
+    // 1 for dots that draw the glyph.
+    #inGlyph = new Uint8Array();
+    // Zones in px, recomputed on resize.
+    #zones: { x: number; y: number; r: number }[] = [];
+    // 0 at rest, 1 while the zone is active.
+    #zoneLevels = new Float32Array();
+    #activeZone = -1;
+    // Set from outside, e.g. by a button; -1 for none.
+    #selectedZone = -1;
+    #pointerZone = -1;
     #pointer: { x: number; y: number } | null = null;
     #frame = 0;
     #inView = false;
@@ -147,7 +211,8 @@ const config = {
       this.#canvas = this.querySelector("canvas")!;
       this.#ctx = this.#canvas.getContext("2d")!;
       this.#seed = this.#config.seed ?? (Math.random() * 2 ** 32) >>> 0;
-      this.#color = this.#resolveColor(this.#config.color);
+      this.#zoneLevels = new Float32Array(this.#config.zones.length);
+      this.#resolveColors();
 
       this.#resizeObserver.observe(this);
       this.#intersectionObserver.observe(this);
@@ -184,7 +249,12 @@ const config = {
       return this.#inView && !document.hidden && !reducedMotion.matches;
     }
 
-    // Canvas can't read var(), so let the browser compute the colour.
+    // Canvas can't read var(), so let the browser compute the colours.
+    #resolveColors() {
+      this.#color = this.#resolveColor(this.#config.color);
+      this.#accent = this.#resolveColor(this.#config.accent);
+    }
+
     #resolveColor(value: string) {
       this.style.color = value;
       const resolved = getComputedStyle(this).color;
@@ -218,7 +288,7 @@ const config = {
     };
 
     #onSchemeChange = () => {
-      this.#color = this.#resolveColor(this.#config.color);
+      this.#resolveColors();
       this.#requestDraw();
     };
 
@@ -231,8 +301,31 @@ const config = {
       this.#frame = 0;
     }
 
+    #zoneAt(x: number, y: number) {
+      return this.#zones.findIndex(
+        (zone) => Math.hypot(x - zone.x, y - zone.y) < zone.r,
+      );
+    }
+
+    get zone() {
+      return this.#activeZone;
+    }
+
+    /** Lights up a zone as if hovered, until the pointer enters another. */
+    set zone(zone: number) {
+      this.#selectedZone = zone;
+      this.#requestDraw();
+    }
+
+    #setActiveZone(zone: number) {
+      if (zone === this.#activeZone) return;
+      this.#activeZone = zone;
+      this.dispatchEvent(new CustomEvent("zonechange", { detail: { zone } }));
+    }
+
     #layout() {
-      const { spacing, density, clustering, clusterSize } = this.#config;
+      const { spacing, density, clustering, clusterSize, zoneDensity } =
+        this.#config;
       const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
 
       this.#width = this.clientWidth;
@@ -241,27 +334,54 @@ const config = {
       this.#canvas.height = Math.round(this.#height * dpr);
       this.#ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+      const side = Math.min(this.#width, this.#height);
+      this.#zones = this.#config.zones.map(({ x, y, r }) => ({
+        x: x * this.#width,
+        y: y * this.#height,
+        r: r * side,
+      }));
+
       const cols = Math.ceil(this.#width / spacing);
       const rows = Math.ceil(this.#height / spacing);
+      const glyphAt = this.#glyphLayout(cols, rows);
       const xs: number[] = [];
       const ys: number[] = [];
+      const zoneOf: number[] = [];
+      const inGlyph: number[] = [];
 
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
+          const x = (col + 0.5) * spacing;
+          const y = (row + 0.5) * spacing;
+          if (glyphAt(col, row)) {
+            xs.push(x);
+            ys.push(y);
+            zoneOf.push(-1);
+            inGlyph.push(1);
+            continue;
+          }
+          const zone = this.#zoneAt(x, y);
           const patch = valueNoise(
             col / clusterSize,
             row / clusterSize,
             ~this.#seed,
           );
-          const chance = density + (patch - 0.5) * 2 * clustering;
+          const chance =
+            density +
+            (patch - 0.5) * 2 * clustering +
+            (zone >= 0 ? zoneDensity : 0);
           if (hash(col, row, this.#seed) >= chance) continue;
-          xs.push((col + 0.5) * spacing);
-          ys.push((row + 0.5) * spacing);
+          xs.push(x);
+          ys.push(y);
+          zoneOf.push(zone);
+          inGlyph.push(0);
         }
       }
 
       this.#xs = Float32Array.from(xs);
       this.#ys = Float32Array.from(ys);
+      this.#zoneOf = Int8Array.from(zoneOf);
+      this.#inGlyph = Uint8Array.from(inGlyph);
       this.#intensities = new Float32Array(xs.length);
 
       // Resizing clears the canvas, so repaint in the same frame.
@@ -269,17 +389,72 @@ const config = {
       this.#draw();
     }
 
+    // Scales each glyph pixel to a square of whole grid cells, as large as
+    // fits glyphSize of the height (and 75% of the width), centred. Returns
+    // whether a grid cell falls on a lit pixel.
+    #glyphLayout(cols: number, rows: number) {
+      const { glyph, glyphSize } = this.#config;
+      const height = glyph.length;
+      const width = glyph[0]?.length ?? 0;
+      if (!height || !width) return () => false;
+
+      const scale = Math.max(
+        1,
+        Math.floor(
+          Math.min((rows * glyphSize) / height, (cols * 0.75) / width),
+        ),
+      );
+      const left = Math.floor((cols - width * scale) / 2);
+      const top = Math.floor((rows - height * scale) / 2);
+
+      return (col: number, row: number) =>
+        glyph[Math.floor((row - top) / scale)]?.[
+          Math.floor((col - left) / scale)
+        ] === "1";
+    }
+
     #draw = () => {
       this.#frame = 0;
-      const { opacity, hoverRadius, hoverOpacity, easing } = this.#config;
+      const {
+        opacity,
+        hoverRadius,
+        hoverOpacity,
+        hoverScale,
+        easing,
+        zoneTint,
+        repel,
+        zonePull,
+      } = this.#config;
       const still = reducedMotion.matches;
       const ease = still ? 1 : easing;
       const pointer = still ? null : this.#pointer;
       const rect = this.getBoundingClientRect();
       const px = pointer ? pointer.x - rect.left : Infinity;
       const py = pointer ? pointer.y - rect.top : Infinity;
-      const levels = this.#emptyLevels();
       let settling = false;
+
+      // Hovering a zone replaces the selected one; leaving it goes back to rest.
+      const pointerZone = pointer ? this.#zoneAt(px, py) : -1;
+      if (pointerZone !== this.#pointerZone) {
+        this.#pointerZone = pointerZone;
+        if (pointerZone >= 0) this.#selectedZone = -1;
+      }
+      this.#setActiveZone(pointerZone >= 0 ? pointerZone : this.#selectedZone);
+      for (let zone = 0; zone < this.#zoneLevels.length; zone++) {
+        const target = zone === this.#activeZone ? 1 : 0;
+        let level = lerp(this.#zoneLevels[zone], target, ease);
+        if (Math.abs(target - level) < 0.001) level = target;
+        else settling = true;
+        this.#zoneLevels[zone] = level;
+      }
+
+      // Each dot is drawn twice, in ink and in accent, with alphas that
+      // crossfade between the two.
+      const ink = this.#emptyLevels();
+      const accent = this.#emptyLevels();
+      const sides = new Float32Array(this.#xs.length);
+      const xs = Float32Array.from(this.#xs);
+      const ys = Float32Array.from(this.#ys);
 
       for (let i = 0; i < this.#xs.length; i++) {
         const distance = Math.hypot(this.#xs[i] - px, this.#ys[i] - py);
@@ -291,23 +466,56 @@ const config = {
         else settling = true;
         this.#intensities[i] = intensity;
 
-        const alpha = lerp(opacity, hoverOpacity, intensity);
-        levels[Math.round(alpha * (ALPHA_LEVELS - 1))].push(i);
+        // Pushed straight away from the cursor, as far as it's lifted.
+        if (repel && intensity && distance) {
+          xs[i] += ((this.#xs[i] - px) / distance) * repel * intensity;
+          ys[i] += ((this.#ys[i] - py) / distance) * repel * intensity;
+        }
+
+        const glyph = this.#inGlyph[i] === 1;
+        const zone = this.#zoneOf[i];
+        const zoneLevel = zone >= 0 ? this.#zoneLevels[zone] : 0;
+
+        // An active zone draws in towards its centre.
+        if (zonePull && zoneLevel) {
+          const { x, y } = this.#zones[zone];
+          xs[i] += (x - this.#xs[i]) * zonePull * zoneLevel;
+          ys[i] += (y - this.#ys[i]) * zonePull * zoneLevel;
+        }
+        const lift = Math.max(intensity, zoneLevel);
+        const tint = glyph
+          ? 1
+          : Math.max(intensity, zone >= 0 ? lerp(zoneTint, 1, zoneLevel) : 0);
+        const alpha = glyph ? 1 : lerp(opacity, hoverOpacity, lift);
+
+        sides[i] = this.#config.size * lerp(1, hoverScale, lift);
+        ink[this.#level(alpha * (1 - tint))].push(i);
+        accent[this.#level(alpha * tint)].push(i);
       }
 
       this.#ctx.clearRect(0, 0, this.#width, this.#height);
-      this.#fill(levels, this.#color);
+      this.#fill(ink, this.#color, xs, ys, sides);
+      this.#fill(accent, this.#accent, xs, ys, sides);
 
       if (settling && this.#active) this.#requestDraw();
     };
+
+    #level(alpha: number) {
+      return Math.round(alpha * (ALPHA_LEVELS - 1));
+    }
 
     // Dots are grouped by opacity so each level is a single fill.
     #emptyLevels(): number[][] {
       return Array.from({ length: ALPHA_LEVELS }, () => []);
     }
 
-    #fill(levels: number[][], color: string) {
-      const { size, hoverScale } = this.#config;
+    #fill(
+      levels: number[][],
+      color: string,
+      xs: Float32Array,
+      ys: Float32Array,
+      sides: Float32Array,
+    ) {
       const ctx = this.#ctx;
       ctx.fillStyle = color;
 
@@ -316,10 +524,8 @@ const config = {
         ctx.globalAlpha = level / (ALPHA_LEVELS - 1);
         ctx.beginPath();
         for (const i of dots) {
-          const x = this.#xs[i];
-          const y = this.#ys[i];
-          const side = size * lerp(1, hoverScale, this.#intensities[i]);
-          ctx.rect(x - side / 2, y - side / 2, side, side);
+          const side = sides[i];
+          ctx.rect(xs[i] - side / 2, ys[i] - side / 2, side, side);
         }
         ctx.fill();
       });
