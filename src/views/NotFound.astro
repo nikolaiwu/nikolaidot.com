@@ -1,5 +1,8 @@
 ---
 import { getRelativeLocaleUrl } from "astro:i18n";
+import Dither from "../components/Dither.astro";
+import Kicker from "../components/Kicker.astro";
+import PillLink from "../components/PillLink.astro";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Base from "../layouts/Base.astro";
 
@@ -12,9 +15,61 @@ const t = useTranslations(lang);
 ---
 
 <Base lang={lang} title={t("notFound.title")} translated={false}>
-  <div class="container">
-    <h1>{t("notFound.title")}</h1>
-    <p>{t("notFound.text")}</p>
-    <a href={getRelativeLocaleUrl(lang)}>{t("notFound.home")}</a>
-  </div>
+  <section class="not-found container" aria-labelledby="not-found-title">
+    <Kicker class="kicker">{t("notFound.kicker")}</Kicker>
+
+    <!-- The number dissolves downwards into page-coloured pixels. -->
+    <div class="code parallax-top" aria-hidden="true">
+      404
+      <div class="dissolve">
+        <Dither cols={64} rows={12} noise={0.6} seed={404} />
+      </div>
+    </div>
+
+    <h1 id="not-found-title">{t("notFound.title")}</h1>
+    <p class="message">{t("notFound.text")}</p>
+    <PillLink href={getRelativeLocaleUrl(lang)} arrow="back">
+      {t("notFound.home")}
+    </PillLink>
+  </section>
 </Base>
+
+<style>
+  /* The number scales with the section, not the viewport. */
+  .not-found {
+    container-type: inline-size;
+    display: grid;
+    justify-items: start;
+    gap: var(--space-m);
+    padding-block: var(--space-l) var(--space-3xl);
+  }
+
+  .kicker {
+    justify-self: stretch;
+  }
+
+  .code {
+    --depth: -2;
+    position: relative;
+    justify-self: stretch;
+    font-family: var(--font-display);
+    font-size: 58cqi;
+    font-weight: var(--weight-display);
+    line-height: 0.8;
+    text-align: center;
+  }
+
+  .dissolve {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    color: var(--color-background);
+  }
+
+  /* A class, not `p`: the Kicker's root is a <p> in this scope too. */
+  .message {
+    max-inline-size: 48ch;
+    font-size: var(--text-lg);
+    color: var(--color-muted);
+  }
+</style>

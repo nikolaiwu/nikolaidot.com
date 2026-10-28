@@ -2,9 +2,12 @@
 import { Image } from "astro:assets";
 import { render } from "astro:content";
 import { getRelativeLocaleUrl } from "astro:i18n";
+import Arrow from "../components/Arrow.astro";
+import PageHeader from "../components/PageHeader.astro";
+import PillLink from "../components/PillLink.astro";
 import WorkYear from "../components/WorkYear.astro";
 import { useTranslations, type Lang } from "../i18n/ui";
-import type { WorkEntry } from "../lib/work";
+import { getSlug, getWork, type WorkEntry } from "../lib/work";
 import Base from "./Base.astro";
 
 interface Props {
@@ -17,37 +20,201 @@ const { entry, lang, translated } = Astro.props;
 const { title, client, role, stack, summary, cover, url } = entry.data;
 const { Content } = await render(entry);
 const t = useTranslations(lang);
+
+// Position in the work index, and the project after it (wrapping round).
+const work = await getWork(lang);
+const index = work.findIndex(({ id }) => id === entry.id);
+const next = work[(index + 1) % work.length];
+const number = String(index + 1).padStart(2, "0");
 ---
 
 <Base lang={lang} title={title} description={summary} translated={translated}>
-  <article class="container">
-    <header>
-      <h1>{title}</h1>
+  <article>
+    <PageHeader kicker={`${t("work.caseStudy")} ${number}`} title={title}>
       <p>{summary}</p>
-      <dl>
-        <dt>{t("work.client")}</dt>
-        <dd>{client}</dd>
-        <dt>{t("work.role")}</dt>
-        <dd>{role}</dd>
-        <dt>{t("work.year")}</dt>
-        <dd>
-          <WorkYear entry={entry} lang={lang} />
-        </dd>
-        <dt>{t("work.stack")}</dt>
-        <dd>
-          <ul>
-            {stack.map((item) => (
-              <li>{item}</li>
-            ))}
-          </ul>
-        </dd>
-      </dl>
-      {url && <a href={url}>{t("work.visit")}</a>}
-    </header>
-    <Image src={cover} alt="" />
-    <Content />
-    <footer>
-      <a href={getRelativeLocaleUrl(lang, "work")}>{t("work.back")}</a>
+      {url && <PillLink href={url}>{t("work.visit")}</PillLink>}
+    </PageHeader>
+
+    <div class="container">
+      <div class="cover parallax">
+        <Image src={cover} alt="" />
+      </div>
+
+      <div class="body grid">
+        <dl class="facts">
+          <div>
+            <dt class="label">{t("work.client")}</dt>
+            <dd>{client}</dd>
+          </div>
+          <div>
+            <dt class="label">{t("work.role")}</dt>
+            <dd>{role}</dd>
+          </div>
+          <div>
+            <dt class="label">{t("work.year")}</dt>
+            <dd>
+              <WorkYear entry={entry} lang={lang} />
+            </dd>
+          </div>
+          <div class="stack">
+            <dt class="label">{t("work.stack")}</dt>
+            <dd>
+              <ul class="label">
+                {stack.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        </dl>
+
+        <div class="prose">
+          <Content />
+        </div>
+      </div>
+    </div>
+
+    <footer class="container">
+      <a
+        class="next"
+        href={getRelativeLocaleUrl(lang, `work/${getSlug(next)}`)}
+      >
+        <span class="label">{t("work.next")}</span>
+        <span class="next-title">{next.data.title}</span>
+        <Arrow class="arrow" />
+      </a>
+      <PillLink href={getRelativeLocaleUrl(lang, "work")} arrow="back">
+        {t("work.back")}
+      </PillLink>
     </footer>
   </article>
 </Base>
+
+<style>
+  .cover {
+    --depth: -1;
+    overflow: hidden;
+    border: 1px solid var(--color-foreground);
+    border-radius: var(--space-s);
+  }
+
+  .cover img {
+    inline-size: 100%;
+    block-size: auto;
+  }
+
+  .body {
+    margin-block-start: var(--space-2xl);
+  }
+
+  /* Facts as bordered cells, like the numbers row on the homepage. */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+    align-self: start;
+    border: 1px solid var(--color-foreground);
+  }
+
+  .facts > div {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2xs);
+    padding: var(--space-s);
+    /* Collapses neighbouring borders in any arrangement. */
+    box-shadow: -1px -1px 0 0 var(--color-foreground);
+  }
+
+  .facts dt {
+    color: var(--color-muted);
+  }
+
+  .facts dd {
+    margin: 0;
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+  }
+
+  .facts ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-s);
+    padding: 0;
+    list-style: none;
+  }
+
+  .stack {
+    grid-column: 1 / -1;
+  }
+
+  /* Side by side: facts stick in a narrow column beside the text. */
+  @media (width >= 64rem) {
+    .facts {
+      position: sticky;
+      inset-block-start: var(--sticky-top);
+      grid-column: 1 / span 4;
+      grid-template-columns: 1fr;
+    }
+
+    .prose {
+      grid-column: 6 / -1;
+
+      > :global(:first-child) {
+        margin-block-start: 0;
+      }
+    }
+  }
+
+  footer {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-l);
+    margin-block-start: var(--space-3xl);
+  }
+
+  .next {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: var(--space-2xs) var(--space-m);
+    inline-size: 100%;
+    padding-block: var(--space-m);
+    text-decoration: none;
+    border-block: 1px solid var(--color-foreground);
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+
+  .next .label {
+    grid-column: 1 / -1;
+    color: var(--color-muted);
+  }
+
+  .next:hover .arrow {
+    translate: var(--space-s) 0;
+  }
+
+  .next-title {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    font-weight: var(--weight-display);
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+
+  /* As tall as the title's capitals, with a heavier line to match its weight. */
+  .arrow {
+    --arrow-size: 0.75em;
+    --arrow-stroke: 2;
+    align-self: center;
+    font-size: var(--text-display);
+    transition: translate 0.3s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arrow {
+      transition: none;
+    }
+  }
+</style>

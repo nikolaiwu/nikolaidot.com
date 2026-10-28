@@ -1,8 +1,12 @@
 ---
 import * as bg from "../content/about/bg.md";
 import * as en from "../content/about/en.md";
+import PageHeader from "../components/PageHeader.astro";
+import PillLink from "../components/PillLink.astro";
+import SpecSheet from "../components/SpecSheet.astro";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Base from "../layouts/Base.astro";
+import { getWork } from "../lib/work";
 
 interface Props {
   lang: Lang;
@@ -11,14 +15,56 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const { Content } = { en, bg }[lang];
+const work = await getWork(lang);
+const stack = [...new Set(work.flatMap(({ data }) => data.stack))];
 ---
 
 <Base lang={lang} title={t("about.title")}>
-  <article class="container">
-    <h1>{t("about.title")}</h1>
-    <Content />
-    <a href="/cv-nikolai-vuchkov-10.2026-p.pdf" hreflang="en">
-      {t("about.cv")}
-    </a>
-  </article>
+  <PageHeader kicker={t("about.kicker")} title={t("about.title")}>
+    <p>{t("hero.text")}</p>
+  </PageHeader>
+
+  <div class="container grid">
+    <div class="prose">
+      <Content />
+    </div>
+
+    <!-- The spec sheet as an ID card, with the CV under it. -->
+    <div class="card">
+      <SpecSheet lang={lang} stack={stack.slice(0, 5)} />
+      <PillLink
+        href="/cv-nikolai-vuchkov-10.2026-p.pdf"
+        hreflang="en"
+        arrow="down"
+        solid
+      >
+        {t("about.cv")}
+      </PillLink>
+    </div>
+  </div>
 </Base>
+
+<style>
+  .card {
+    display: grid;
+    justify-items: start;
+    align-content: start;
+    gap: var(--space-l);
+    margin-block-start: var(--space-xl);
+  }
+
+  @media (width >= 64rem) {
+    .prose {
+      grid-column: 1 / span 6;
+    }
+
+    /* Sticks beside the text while it scrolls. */
+    .card {
+      position: sticky;
+      inset-block-start: var(--sticky-top);
+      grid-column: 8 / -1;
+      align-self: start;
+      margin-block-start: 0;
+    }
+  }
+</style>

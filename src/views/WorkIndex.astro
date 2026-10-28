@@ -1,6 +1,9 @@
 ---
 import { getRelativeLocaleUrl } from "astro:i18n";
-import WorkCard from "../components/WorkCard.astro";
+import Arrow from "../components/Arrow.astro";
+import PageHeader from "../components/PageHeader.astro";
+import SectionHead from "../components/SectionHead.astro";
+import WorkGrid from "../components/WorkGrid.astro";
 import WorkYear from "../components/WorkYear.astro";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Base from "../layouts/Base.astro";
@@ -15,34 +18,144 @@ const t = useTranslations(lang);
 const work = await getWork(lang);
 const featured = work.filter(({ data }) => data.featured);
 const more = work.filter(({ data }) => !data.featured);
+const pad = (n: number) => String(n).padStart(2, "0");
 ---
 
 <Base lang={lang} title={t("work.title")} description={t("work.intro")}>
-  <header class="container">
-    <h1>{t("work.title")}</h1>
+  <PageHeader kicker={t("work.kicker")} title={t("work.title")}>
     <p>{t("work.intro")}</p>
-  </header>
+    <p class="label">({pad(work.length)})</p>
+  </PageHeader>
+
   <section class="container" aria-labelledby="featured-title">
-    <h2 id="featured-title">{t("home.featured")}</h2>
-    <ul>
-      {featured.map((entry) => (
-        <li>
-          <WorkCard entry={entry} lang={lang} />
-        </li>
-      ))}
-    </ul>
+    <SectionHead id="featured-title" class="parallax" sticky>
+      {t("home.featured")}
+    </SectionHead>
+    <WorkGrid entries={featured} lang={lang} />
   </section>
+
   <section class="container" aria-labelledby="more-title">
-    <h2 id="more-title">{t("work.more")}</h2>
-    <ul>
-      {more.map((entry) => (
+    <SectionHead id="more-title" class="parallax">
+      {t("work.more")}
+    </SectionHead>
+    <!-- Numbered on from the featured cards, like rows of a spec sheet. -->
+    <ol class="more">
+      {more.map((entry, i) => (
         <li>
           <a href={getRelativeLocaleUrl(lang, `work/${getSlug(entry)}`)}>
-            {entry.data.title}
+            <span class="index label">{pad(featured.length + i + 1)}</span>
+            <span class="title">{entry.data.title}</span>
+            <span class="client">{entry.data.client}</span>
+            <span class="role">{entry.data.role}</span>
+            <span class="year label">
+              <WorkYear entry={entry} lang={lang} />
+            </span>
+            <Arrow class="arrow" />
           </a>
-          {entry.data.client} · <WorkYear entry={entry} lang={lang} />
         </li>
       ))}
-    </ul>
+    </ol>
   </section>
 </Base>
+
+<style>
+  section + section {
+    margin-block-start: var(--space-3xl);
+  }
+
+  .more {
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--color-foreground);
+  }
+
+  li {
+    border-block-end: 1px solid var(--color-foreground);
+  }
+
+  a {
+    display: grid;
+    grid-template-columns: 3rem 2fr 1.5fr 1.5fr auto 2rem;
+    align-items: baseline;
+    gap: var(--space-m);
+    padding: var(--space-m) var(--space-s);
+    text-decoration: none;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+
+    &:hover {
+      color: var(--color-background);
+      background: var(--color-foreground);
+    }
+  }
+
+  a:hover .arrow {
+    translate: var(--space-2xs) 0;
+  }
+
+  .title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-display);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .index,
+  .role {
+    color: var(--color-muted);
+  }
+
+  a:hover :is(.index, .role) {
+    color: inherit;
+  }
+
+  /* Centred, since an SVG's baseline is its bottom edge. */
+  .arrow {
+    align-self: center;
+    justify-self: end;
+    transition: translate 0.2s;
+  }
+
+  /* Stacked: number, title and arrow on top, client · year under the title. */
+  @media (width < 48rem) {
+    a {
+      grid-template-columns: 2.5rem 1fr auto;
+      grid-template-areas:
+        "index title arrow"
+        ". client year";
+      row-gap: var(--space-2xs);
+    }
+
+    .index {
+      grid-area: index;
+    }
+
+    .title {
+      grid-area: title;
+    }
+
+    .client {
+      grid-area: client;
+    }
+
+    .year {
+      grid-area: year;
+    }
+
+    .arrow {
+      grid-area: arrow;
+    }
+
+    .role {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arrow {
+      transition: none;
+    }
+  }
+</style>
