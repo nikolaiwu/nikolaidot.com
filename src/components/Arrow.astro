@@ -1,0 +1,43 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"svg"> {
+  direction?: "forward" | "back" | "down";
+}
+
+// Rest props carry the parent's scope, so it can style and move the arrow.
+const { direction = "forward", class: className, ...rest } = Astro.props;
+---
+
+<!-- One right-pointing arrow, rotated for the other directions. Drawn rather
+     than typed, so it centres on the text at any font size. Decorative: the
+     link it sits in says where it goes. -->
+<svg
+  class:list={["arrow", direction, className]}
+  viewBox="0 0 16 16"
+  aria-hidden="true"
+  {...rest}
+>
+  <path d="M2 8h12M9 3l5 5-5 5"></path>
+</svg>
+
+<style>
+  /* --arrow-size and --arrow-stroke let a parent adjust it, e.g. next to
+     display type. */
+  .arrow {
+    flex: none;
+    inline-size: var(--arrow-size, 1.3em);
+    block-size: var(--arrow-size, 1.3em);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: var(--arrow-stroke, 1.5);
+  }
+
+  .back {
+    rotate: 180deg;
+  }
+
+  .down {
+    rotate: 90deg;
+  }
+</style>

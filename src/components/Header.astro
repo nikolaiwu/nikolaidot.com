@@ -26,22 +26,123 @@ const alternates = locales.filter((code) => code !== lang);
 ---
 
 <header class="container">
-  <a href={getRelativeLocaleUrl(lang)}>{t("site.name")}</a>
-  <nav aria-label={t("nav.label")}>
-    <ul>
-      {links.map(({ href, label }) => (
-        <li>
-          <a href={href} aria-current={isCurrent(href) ? "page" : undefined}>
-            {label}
-          </a>
-        </li>
+  <div class="bar label">
+    <a class="brand" href={getRelativeLocaleUrl(lang)}>
+      {t("site.name")}
+    </a>
+    <nav aria-label={t("nav.label")}>
+      <ul>
+        {links.map(({ href, label }) => (
+          <li>
+            <a href={href} aria-current={isCurrent(href) ? "page" : undefined}>
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    {translated &&
+      alternates.map((code) => (
+        <a
+          class="lang"
+          href={getRelativeLocaleUrl(code, path)}
+          hreflang={code}
+          lang={code}
+          aria-label={`${code.toUpperCase()} — ${languages[code]}`}
+        >
+          {code}
+        </a>
       ))}
-    </ul>
-  </nav>
-  {translated &&
-    alternates.map((code) => (
-      <a href={getRelativeLocaleUrl(code, path)} hreflang={code} lang={code}>
-        {languages[code]}
-      </a>
-    ))}
+  </div>
 </header>
+
+<style>
+  header {
+    position: sticky;
+    top: 0;
+    /* Above the sticky section titles, which are above the content. */
+    z-index: 2;
+    padding-block: var(--header-gap) 0;
+    background-color: var(--color-background);
+  }
+
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid var(--color-foreground);
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--header-row);
+    padding-inline: var(--space-s);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+
+    &:hover {
+      color: var(--color-background);
+      background: var(--color-accent);
+    }
+  }
+
+  .brand {
+    flex: 1 0 auto;
+    justify-content: start;
+    letter-spacing: 0;
+  }
+
+  nav {
+    display: flex;
+    flex: 3 1 0;
+  }
+
+  ul {
+    display: flex;
+    flex: 1;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Grows from the label's width, so longer labels get wider cells. */
+  li {
+    flex: 1 1 auto;
+    border-inline-start: 1px solid var(--color-foreground);
+  }
+
+  li:last-child a {
+    color: var(--color-background);
+    background: var(--color-foreground);
+  }
+
+  [aria-current="page"] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.4em;
+  }
+
+  .lang {
+    border-inline-start: 1px solid var(--color-foreground);
+  }
+
+  /* The nav wraps under the brand, so it needs its own top rule. */
+  @media (width < 40rem) {
+    .brand {
+      flex-basis: 100%;
+      border-block-end: 1px solid var(--color-foreground);
+    }
+
+    li:first-child {
+      border-inline-start: 0;
+    }
+
+    nav a,
+    .lang {
+      padding-inline: var(--space-xs);
+    }
+  }
+</style>

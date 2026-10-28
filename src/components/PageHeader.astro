@@ -1,0 +1,48 @@
+---
+import Kicker from "./Kicker.astro";
+
+interface Props {
+  kicker: string;
+  title: string;
+}
+
+const { kicker, title } = Astro.props;
+---
+
+<!-- The masthead of an inner page; the default slot holds the intro. -->
+<header class="page-header container">
+  <Kicker>{kicker}</Kicker>
+  <h1 class="title parallax-top">{title}</h1>
+  <div class="intro">
+    <slot />
+  </div>
+</header>
+
+<style>
+  /* The title scales with the header, not the viewport. */
+  .page-header {
+    container-type: inline-size;
+    padding-block: var(--space-l) var(--space-2xl);
+  }
+
+  .title {
+    --depth: -3;
+    margin-block: var(--space-s) var(--space-l);
+    font-size: clamp(var(--text-display), 15cqi, 10rem);
+    line-height: 0.85;
+  }
+
+  .intro {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-m) var(--space-xl);
+
+    > :global(p:not(.label)) {
+      max-inline-size: 48ch;
+      font-size: var(--text-lg);
+      color: var(--color-muted);
+    }
+  }
+</style>

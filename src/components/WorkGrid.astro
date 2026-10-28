@@ -1,0 +1,50 @@
+---
+import type { Lang } from "../i18n/ui";
+import type { WorkEntry } from "../lib/work";
+import WorkCard from "./WorkCard.astro";
+
+interface Props {
+  entries: WorkEntry[];
+  lang: Lang;
+}
+
+const { entries, lang } = Astro.props;
+---
+
+<!-- Cards in alternating 7/5 and 5/7 rows. -->
+<ul class="grid">
+  {entries.map((entry, i) => (
+    <li class="parallax">
+      <WorkCard entry={entry} lang={lang} index={i + 1} />
+    </li>
+  ))}
+</ul>
+
+<style>
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Neighbouring cards drift apart. */
+  li {
+    --depth: 1.2;
+    grid-column: span 12;
+
+    &:nth-child(even) {
+      --depth: -1.2;
+    }
+  }
+
+  @media (width >= 48rem) {
+    li:nth-child(4n + 1),
+    li:nth-child(4n + 4) {
+      grid-column: span 7;
+    }
+
+    li:nth-child(4n + 2),
+    li:nth-child(4n + 3) {
+      grid-column: span 5;
+    }
+  }
+</style>

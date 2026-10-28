@@ -1,0 +1,93 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** The heading's id, for the section's aria-labelledby. */
+  id: string;
+  /** Sticks below the header while its section scrolls past. */
+  sticky?: boolean;
+}
+
+const { id, sticky = false, class: className, ...rest } = Astro.props;
+---
+
+<!-- A section title with the dark poster's striped rule, and an optional
+     action (slot="action") at the end. -->
+<div class:list={["head", { sticky }, className]} {...rest}>
+  <h2 id={id}>
+    <slot />
+  </h2>
+  <slot name="action" />
+</div>
+
+<style>
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    margin-block-end: var(--space-xl);
+  }
+
+  /* Its background reaches up to the header and down past the title, so
+     content scrolling under it never shows through the gaps. */
+  @media (width >= 64rem) {
+    .sticky {
+      position: sticky;
+      inset-block-start: var(--header-height);
+      z-index: 1;
+      margin-block: calc(-1 * var(--header-gap))
+        calc(var(--space-xl) - var(--space-m));
+      padding-block: var(--header-gap) var(--space-m);
+      background-color: var(--color-background);
+      /* A parallax drift would carry it under the header. */
+      animation: none;
+      container-type: scroll-state;
+
+      /* A rule along the bottom edge, drawn while it's stuck. */
+      &::after {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        inset-block-end: 0;
+        border-block-end: 1px solid var(--color-foreground);
+        transform-origin: left;
+        scale: 0 1;
+        transition: scale 0.5s cubic-bezier(0.6, 0, 0.2, 1);
+      }
+    }
+
+    @container scroll-state(stuck: top) {
+      .sticky::after {
+        scale: 1;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sticky::after {
+      transition: none;
+    }
+  }
+
+  h2 {
+    display: flex;
+    flex: 1 1 20rem;
+    align-items: center;
+    gap: var(--space-m);
+    font-size: var(--text-3xl);
+    line-height: 0.95;
+
+    &::after {
+      content: "";
+      flex: 1;
+      min-inline-size: var(--space-xl);
+      block-size: 0.45em;
+      background: repeating-linear-gradient(
+        currentColor 0 3px,
+        transparent 3px 7px
+      );
+    }
+  }
+</style>

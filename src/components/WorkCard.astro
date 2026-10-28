@@ -8,19 +8,134 @@ import WorkYear from "./WorkYear.astro";
 interface Props {
   entry: WorkEntry;
   lang: Lang;
+  /** Position in the list, shown as a large index. */
+  index: number;
 }
 
-const { entry, lang } = Astro.props;
+const { entry, lang, index } = Astro.props;
 const { title, client, role, summary, cover } = entry.data;
 ---
 
-<article>
-  <Image src={cover} alt="" />
+<article class="card">
+  <p class="top label">
+    <span class="index">{String(index).padStart(2, "0")}</span>
+    <WorkYear entry={entry} lang={lang} />
+  </p>
+  <div class="media">
+    <Image src={cover} alt="" />
+  </div>
   <h3>
     <a href={getRelativeLocaleUrl(lang, `work/${getSlug(entry)}`)}>{title}</a>
   </h3>
-  <p>{summary}</p>
-  <p>
-    {client} · {role} · <WorkYear entry={entry} lang={lang} />
+  <p class="summary">{summary}</p>
+  <p class="meta label">
+    {client} · {role}
   </p>
 </article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    block-size: 100%;
+    padding: var(--space-m);
+    border: 1px solid var(--color-foreground);
+    border-radius: var(--space-s);
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: var(--color-accent);
+    }
+  }
+
+  /* Index at the start, year at the end. */
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+  }
+
+  .index {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-display);
+  }
+
+  /* Accent duotone with a halftone screen; hover shows the real colours. */
+  .media {
+    position: relative;
+    overflow: hidden;
+    background: var(--color-accent);
+    border-radius: var(--space-2xs);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(var(--color-background) 28%, transparent 32%)
+        0 0 / 5px 5px;
+      opacity: 0.45;
+      transition: opacity 0.3s;
+    }
+  }
+
+  .media img {
+    inline-size: 100%;
+    block-size: auto;
+    mix-blend-mode: luminosity;
+    filter: contrast(1.3);
+    transition: scale 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .card:hover .media {
+    &::after {
+      opacity: 0;
+    }
+  }
+
+  .card:hover .media img {
+    mix-blend-mode: normal;
+    scale: 1.04;
+  }
+
+  h3 {
+    font-size: var(--text-2xl);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  h3 a {
+    text-decoration: none;
+
+    /* The whole card is the link target. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+    }
+  }
+
+  .summary {
+    color: var(--color-muted);
+  }
+
+  .meta {
+    margin-block-start: auto;
+    padding-block-start: var(--space-s);
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .media img {
+      transition: none;
+    }
+
+    .card:hover .media img {
+      scale: none;
+    }
+  }
+</style>

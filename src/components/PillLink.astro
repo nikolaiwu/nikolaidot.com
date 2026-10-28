@@ -1,0 +1,77 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Arrow from "./Arrow.astro";
+
+interface Props extends HTMLAttributes<"a"> {
+  /** Filled with the foreground colour instead of outlined. */
+  solid?: boolean;
+  /** Which way the arrow points; "back" puts it before the label. */
+  arrow?: "forward" | "back" | "down";
+}
+
+const {
+  solid = false,
+  arrow = "forward",
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<a class:list={["pill", "label", arrow, { solid }, className]} {...rest}>
+  <slot />
+  <Arrow class="arrow" direction={arrow} />
+</a>
+
+<style>
+  .pill {
+    --nudge: var(--space-3xs) 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-s);
+    padding: var(--space-xs) var(--space-m);
+    text-decoration: none;
+    border: 1px solid var(--color-foreground);
+    border-radius: var(--space-l);
+    transition:
+      color 0.2s,
+      background-color 0.2s,
+      border-color 0.2s;
+
+    &:hover {
+      color: var(--color-background);
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+    }
+  }
+
+  .pill:hover .arrow {
+    translate: var(--nudge);
+  }
+
+  .arrow {
+    transition: translate 0.2s;
+  }
+
+  .back {
+    --nudge: calc(-1 * var(--space-3xs)) 0;
+  }
+
+  .back .arrow {
+    order: -1;
+  }
+
+  .down {
+    --nudge: 0 var(--space-3xs);
+  }
+
+  .solid {
+    color: var(--color-background);
+    background: var(--color-foreground);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arrow {
+      transition: none;
+    }
+  }
+</style>

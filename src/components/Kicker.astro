@@ -1,0 +1,46 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = HTMLAttributes<"p">;
+
+// Rest props carry the parent's scope, so it can style the root (e.g. --depth).
+const { class: className, ...rest } = Astro.props;
+---
+
+<!-- "+ ——— Label ——— +", the crop marks above a poster's title. -->
+<!-- Always at the top of a page, so it drifts from rest over the first screen. -->
+<p class:list={["kicker", "parallax-top", "label", className]} {...rest}>
+  <span>
+    <slot />
+  </span>
+</p>
+
+<style>
+  .kicker {
+    --depth: 16;
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    color: var(--color-muted);
+
+    &::before,
+    &::after {
+      content: "+";
+      font-size: var(--text-base);
+    }
+  }
+
+  .kicker span {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--space-s);
+
+    &::before,
+    &::after {
+      content: "";
+      flex: 1;
+      border-block-start: 1px solid currentColor;
+    }
+  }
+</style>

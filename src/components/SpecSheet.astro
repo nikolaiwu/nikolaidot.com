@@ -1,0 +1,133 @@
+---
+import { useTranslations, type Lang } from "../i18n/ui";
+import Dither from "./Dither.astro";
+
+interface Props {
+  lang: Lang;
+  stack: string[];
+}
+
+const { lang, stack } = Astro.props;
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+// "Nikolai Vuchkov" → "NV".
+const monogram = t("site.name")
+  .split(/[\s.]+/)
+  .map((word) => word[0])
+  .join("");
+---
+
+<aside class="spec label" aria-label={t("spec.label")}>
+  <p class="badge">
+    <span class="monogram">{monogram}</span>
+    <span class="title">{t("spec.title")}</span>
+    <span>
+      ©{monogram}
+      {String(year).slice(-2)}
+    </span>
+  </p>
+
+  <div class="tools">
+    <p>//{t("spec.stack")}</p>
+    <ul>
+      {stack.map((item) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+    <span class="pixels" aria-hidden="true"></span>
+  </div>
+
+  <p class="credit">
+    <span>{t("spec.credit")}</span>
+    <span>© {year}</span>
+  </p>
+
+  <div class="bar">
+    <p>
+      {t("spec.bar")}
+      <br />
+      ///
+    </p>
+    <Dither cols={24} rows={8} fade="end" noise={0.5} seed={25} />
+  </div>
+</aside>
+
+<style>
+  .spec {
+    display: grid;
+    gap: var(--space-m);
+    letter-spacing: 0.12em;
+  }
+
+  .badge {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: stretch;
+    border: 1px solid currentColor;
+  }
+
+  .badge > span {
+    display: grid;
+    align-content: center;
+    padding: var(--space-2xs) var(--space-s);
+  }
+
+  .monogram {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-display);
+    letter-spacing: 0;
+  }
+
+  .title {
+    line-height: 1.05;
+    color: var(--color-background);
+    background: var(--color-foreground);
+  }
+
+  .tools {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0 var(--space-m);
+  }
+
+  .tools ul {
+    grid-column: 1;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Pixel crosses: one 3×3 cross per 4×4 tile. */
+  .pixels {
+    grid-area: 1 / 2 / span 2;
+    /* Four by three crosses, without the trailing gap row. */
+    inline-size: calc(var(--space-2xs) * 15);
+    block-size: calc(var(--space-2xs) * 11);
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM0 2h1v1H0zM2 2h1v1H2z'/%3E%3C/svg%3E")
+      0 0 / calc(var(--space-2xs) * 4) repeat;
+  }
+
+  /* A solid rule over a dotted one. */
+  .credit {
+    display: flex;
+    justify-content: space-between;
+    padding-block-start: var(--space-xs);
+    border-block-start: 2px solid currentColor;
+    background: radial-gradient(circle, currentColor 1px, transparent 1.5px) 0
+      4px / 6px 6px repeat-x;
+  }
+
+  .bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .bar p {
+    display: grid;
+    align-content: center;
+    padding-inline: var(--space-m);
+    color: var(--color-background);
+    background: var(--color-foreground);
+  }
+</style>

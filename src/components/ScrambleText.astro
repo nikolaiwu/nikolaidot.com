@@ -1,0 +1,71 @@
+---
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+---
+
+<scramble-text>{text}</scramble-text>
+
+<script>
+  // ASCII only, so every glyph exists in the mono face and keeps its width.
+  const GLYPHS = "#*+=/<>_~^%&01";
+  // Time per frame of the decode, in ms.
+  const TICK = 45;
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+  const randomGlyph = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+
+  // Swaps its text with a decode effect: each character cycles through
+  // glyphs, then settles, roughly left to right.
+  class ScrambleText extends HTMLElement {
+    #frame = 0;
+
+    get text() {
+      return this.textContent ?? "";
+    }
+
+    set text(value: string) {
+      cancelAnimationFrame(this.#frame);
+      if (reducedMotion.matches) {
+        this.textContent = value;
+        return;
+      }
+
+      const length = Math.max(this.text.length, value.length);
+      const settleAt = Array.from(
+        { length },
+        (_, i) => i + Math.floor(Math.random() * 6),
+      );
+      let start = 0;
+      let lastTick = -1;
+
+      // Ticks come from elapsed time, so it settles on schedule at any frame rate.
+      const step = (now: number) => {
+        start ||= now;
+        const tick = Math.floor((now - start) / TICK);
+        if (tick !== lastTick) {
+          lastTick = tick;
+          let output = "";
+          for (let i = 0; i < length; i++) {
+            const char = value[i] ?? "";
+            output +=
+              tick >= settleAt[i] || char === " " ? char : randomGlyph();
+          }
+          this.textContent = output;
+          if (output === value) return;
+        }
+        this.#frame = requestAnimationFrame(step);
+      };
+
+      this.#frame = requestAnimationFrame(step);
+    }
+
+    disconnectedCallback() {
+      cancelAnimationFrame(this.#frame);
+    }
+  }
+
+  customElements.define("scramble-text", ScrambleText);
+</script>
