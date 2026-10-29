@@ -94,7 +94,7 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 
 ## Dot grid
 
-- `DotGrid.astro` is a `<dot-grid>` custom element drawing on a decorative canvas (`aria-hidden`), absolutely positioned behind its parent's content (`z-index: -1`, so the parent needs `isolation: isolate`). It's used in the hero and in the homepage CTA, with the same settings so the two match.
+- `DotGrid.astro` is a `<dot-grid>` custom element drawing on a decorative canvas (`aria-hidden`), absolutely positioned behind its parent's content (`z-index: -1`, so the parent needs `isolation: isolate`). It's used in the hero and in the homepage CTA. Its defaults are the look they share, so the two match; the hero adds `zones` and `zonePull`, the CTA a `glyph`.
 - It only redraws in response to the pointer, while it's in view (`IntersectionObserver`) and the tab is visible. Under `prefers-reduced-motion: reduce` it draws one static frame and ignores the pointer.
 - Device pixel ratio is capped at 2. Colors come from CSS tokens, resolved through `getComputedStyle` and re-read when the color scheme changes.
 - Listeners share one `AbortController`, aborted in `disconnectedCallback`.
