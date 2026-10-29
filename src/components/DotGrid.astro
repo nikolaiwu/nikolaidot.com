@@ -13,9 +13,9 @@ interface Props {
   spacing?: number;
   /** Square side length at rest, in px. */
   size?: number;
-  /** Any CSS colour. */
+  /** Colour of the dots, hovered ones included. Any CSS colour. */
   color?: string;
-  /** Colour that hovered dots and zones fade towards. Any CSS colour. */
+  /** Colour of zone and glyph dots. Any CSS colour. */
   accent?: string;
   /** Dot opacity at rest, 0–1. */
   opacity?: number;
@@ -483,9 +483,8 @@ const config = {
           ys[i] += (y - this.#ys[i]) * zonePull * zoneLevel;
         }
         const lift = Math.max(intensity, zoneLevel);
-        const tint = glyph
-          ? 1
-          : Math.max(intensity, zone >= 0 ? lerp(zoneTint, 1, zoneLevel) : 0);
+        // Accent only in zones and glyphs; the cursor lifts dots in ink.
+        const tint = glyph ? 1 : zone >= 0 ? lerp(zoneTint, 1, zoneLevel) : 0;
         const alpha = glyph ? 1 : lerp(opacity, hoverOpacity, lift);
 
         sides[i] = this.#config.size * lerp(1, hoverScale, lift);
