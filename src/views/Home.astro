@@ -82,20 +82,7 @@ const stats = [
     <div class="box parallax">
       <!-- Bookends the hero: the same dot grid, spelling a greeting. -->
       <div class="greeting">
-        <DotGrid
-          color="var(--color-foreground)"
-          spacing={5}
-          size={2.5}
-          opacity={0.55}
-          density={0.5}
-          clustering={0.5}
-          clusterSize={14}
-          hoverRadius={160}
-          hoverScale={2}
-          hoverOpacity={1}
-          glyph={pixelText(t("home.contactGreeting"))}
-          repel={16}
-        />
+        <DotGrid glyph={pixelText(t("home.contactGreeting"))} />
       </div>
       <div class="body">
         <h2 id="cta-title">{t("home.contactTitle")}</h2>

@@ -97,21 +97,7 @@ const toPath = ([x0, y0, x1, y1, x2, y2, x3, y3]: number[]) =>
     <!-- Decorative, except the ✱ button, which steps through the hotspots for
          touch and keyboard users, who can't hover. -->
     <div class="visual">
-      <DotGrid
-        color="var(--color-foreground)"
-        spacing={5}
-        size={2.5}
-        opacity={0.55}
-        density={0.5}
-        clustering={0.5}
-        clusterSize={14}
-        hoverRadius={160}
-        hoverScale={2}
-        hoverOpacity={1}
-        repel={16}
-        zonePull={0.3}
-        zones={zones}
-      />
+      <DotGrid zones={zones} zonePull={0.3} />
       <span
         class="tag label"
         data-zones={JSON.stringify(zones)}
