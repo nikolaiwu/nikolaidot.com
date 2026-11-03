@@ -130,6 +130,7 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 
 - The `work` collection is defined in `src/content.config.ts` (glob loader, `.md`/`.mdx`). Entries live in `work/en/` and `work/bg/`; the same filename is the same case study in both languages, and entry ids are `en/<slug>` / `bg/<slug>`. Locale comes from the folder, not frontmatter.
 - Real case studies are never committed here. They live in a private sibling repo, `../nikolaidot.com-content/`, read through `CONTENT_DIR` (the `:live` scripts). Without it, the build uses the placeholders in `src/content/work/`; that's what CI and GitHub Pages build. A missing `CONTENT_DIR` folder fails the build.
+- `CONTENT_DIR` is also an `astro:env` variable. Without it, `Base` renders `SampleNotice`: a fixed accent tag in the gap above the header, top left, so placeholder builds are never mistaken for the real site.
 - Real entries keep their images next to them (`cover: ./<slug>-cover.png`). Images outside the project work in dev and build without extra config.
 - Translated entries repeat every frontmatter field; only `title`, `role`, `summary` and the body change.
 - Archived entries (`status: archived`) have no `url`.
