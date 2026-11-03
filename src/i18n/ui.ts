@@ -26,7 +26,7 @@ const en = {
   "nav.contact": "Contact",
   "hero.title": "Front-end engineer building fast, considered interfaces.",
   "hero.text":
-    "Seventeen years of turning designs into products people use every day: marketing sites, data-heavy dashboards and real-time platforms.",
+    "{years} years of turning designs into products people use every day: marketing sites, data-heavy dashboards and real-time platforms.",
   "hero.link": "See the work",
   "hero.kicker": "Portfolio",
   "hero.role": "[Front-end engineer]",
@@ -98,7 +98,7 @@ const bg: typeof en = {
   "nav.contact": "Контакт",
   "hero.title": "Фронтенд инженер, който създава бързи и обмислени интерфейси.",
   "hero.text":
-    "Седемнадесет години превръщам дизайни в продукти, които хората използват всеки ден: маркетингови сайтове, дашборди с много данни и платформи в реално време.",
+    "{years} години превръщам дизайни в продукти, които хората използват всеки ден: маркетингови сайтове, дашборди с много данни и платформи в реално време.",
   "hero.link": "Вижте проектите",
   "hero.kicker": "Портфолио",
   "hero.role": "[Фронтенд инженер]",

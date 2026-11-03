@@ -6,6 +6,7 @@ import PillLink from "../components/PillLink.astro";
 import SectionHead from "../components/SectionHead.astro";
 import SpecSheet from "../components/SpecSheet.astro";
 import WorkGrid from "../components/WorkGrid.astro";
+import Years from "../components/Years.astro";
 import { email } from "../data/contact";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Base from "../layouts/Base.astro";
@@ -23,7 +24,7 @@ const featured = work.filter(({ data }) => data.featured);
 const stack = [...new Set(work.flatMap(({ data }) => data.stack))];
 
 const stats = [
-  { value: "17", label: t("stats.years.label") },
+  { value: null, label: t("stats.years.label") },
   {
     value: String(work.length).padStart(2, "0"),
     label: t("stats.projects.label"),
@@ -61,7 +62,7 @@ const stats = [
     <ul class="stats">
       {stats.map(({ value, label }) => (
         <li>
-          <p class="value">{value}</p>
+          <p class="value">{value ?? <Years />}</p>
           <p>{label}</p>
         </li>
       ))}

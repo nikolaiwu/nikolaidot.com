@@ -1,0 +1,15 @@
+---
+import { yearsOfExperience } from "../data/career";
+---
+
+<span data-years>{yearsOfExperience()}</span>
+
+<script>
+  import { yearsOfExperience } from "../data/career";
+
+  // Keeps the build-time count current between deploys.
+  const years = String(yearsOfExperience());
+  for (const el of document.querySelectorAll("[data-years]")) {
+    el.textContent = years;
+  }
+</script>

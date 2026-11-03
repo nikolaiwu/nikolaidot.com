@@ -7,6 +7,7 @@ import DotGrid from "./DotGrid.astro";
 import Icon from "./Icon.astro";
 import Kicker from "./Kicker.astro";
 import ScrambleText from "./ScrambleText.astro";
+import Years from "./Years.astro";
 
 interface Props {
   lang: Lang;
@@ -14,6 +15,7 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+const [beforeYears, afterYears] = t("hero.text").split("{years}");
 
 // Hotspots in the dot grid, placed clear of the tag, figure and asterisk.
 // Each one retitles the figure with its word; the first word is the resting one.
@@ -139,7 +141,11 @@ const toPath = ([x0, y0, x1, y1, x2, y2, x3, y3]: number[]) =>
 
     <div class="copy">
       <h1 id="hero-title">{t("hero.title")}</h1>
-      <p>{t("hero.text")}</p>
+      <p>
+        {beforeYears}
+        <Years />
+        {afterYears}
+      </p>
       <a class="label" href={getRelativeLocaleUrl(lang, "work")}>
         {t("hero.link")} <Arrow direction="down" />
       </a>
