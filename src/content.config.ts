@@ -1,9 +1,19 @@
+import { existsSync } from "node:fs";
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
+// Real case studies live outside this repo, in CONTENT_DIR. Without it, the placeholders build.
+const workBase = process.env.CONTENT_DIR
+  ? `${process.env.CONTENT_DIR}/work`
+  : "./src/content/work";
+
+if (!existsSync(workBase)) {
+  throw new Error(`No case studies at ${workBase}`);
+}
+
 const work = defineCollection({
-  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/work" }),
+  loader: glob({ pattern: "**/*.{md,mdx}", base: workBase }),
   schema: ({ image }) =>
     z.object({
       title: z.string(),
