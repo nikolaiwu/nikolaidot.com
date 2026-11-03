@@ -90,6 +90,7 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - `Base` renders `hreflang` alternates (each locale plus `x-default` → English), `og:locale` and `og:locale:alternate` (codes in `ogLocales` in `ui.ts`). Absolute URLs come from `site` in `astro.config.mjs`, a placeholder until the domain is set.
 - Longer page copy is Markdown, one file per locale (About: `src/content/about/{en,bg}.md`).
 - Contact details are in `src/data/contact.ts`, and the contact section is in the footer (`#contact`).
+- Years of experience come from `yearsOfExperience()` in `src/data/career.ts` (from August 2009). Render them with `<Years />`: counted at build time, then recounted in the browser, so the number stays current between deploys. In `ui.ts` strings, `{years}` marks where it goes. Don't hard-code the number.
 - `public/` holds only the public CV (`cv-…-p.pdf`, `-p` for public): no phone number and no personal email. Before committing a new one, check its text, links and metadata.
 
 ## Dot grid
