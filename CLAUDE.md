@@ -128,17 +128,25 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 
 ## Case studies
 
-- The `work` collection is defined in `src/content.config.ts` (glob loader, `.md`/`.mdx`). Entries live in `src/content/work/en/` and `src/content/work/bg/`; the same filename is the same case study in both languages, and entry ids are `en/<slug>` / `bg/<slug>`. Locale comes from the folder, not frontmatter.
+- The `work` collection is defined in `src/content.config.ts` (glob loader, `.md`/`.mdx`). Entries live in `work/en/` and `work/bg/`; the same filename is the same case study in both languages, and entry ids are `en/<slug>` / `bg/<slug>`. Locale comes from the folder, not frontmatter.
+- Real case studies are never committed here. They live in a private sibling repo, `../nikolaidot.com-content/`, read through `CONTENT_DIR` (the `:live` scripts). Without it, the build uses the placeholders in `src/content/work/`; that's what CI and GitHub Pages build. A missing `CONTENT_DIR` folder fails the build.
+- Real entries keep their images next to them (`cover: ./<slug>-cover.png`). Images outside the project work in dev and build without extra config.
 - Translated entries repeat every frontmatter field; only `title`, `role`, `summary` and the body change.
 - Archived entries (`status: archived`) have no `url`.
 - The current entries are Lorem Ipsum placeholders (Cyrillic pseudo-Latin text in `bg/`) with SVG images from `src/assets/placeholders/`. They exist to style against and get replaced by real case studies.
-- Work in progress lives in `drafts/` (or as `*.local.md`). A case study moves into `src/content/` and is committed only when it's finished and passes the content rules in `PLAN.local.md`.
+- Work in progress lives in the content repo's `drafts/`. A case study moves into its `work/` when it's finished and passes the content rules in `PLAN.local.md`. `drafts/` and `*.local.md` stay gitignored here as a safety net.
 - When writing or editing a case study, check it against those rules and flag anything that crosses a line. When unsure, anonymise.
 
 ## Preview deploy
 
 - `.github/workflows/deploy.yml` publishes a preview to GitHub Pages (`https://nikolaiwu.github.io/nikolaidot.com/`) on every push to `main`.
 - The workflow sets `SITE_URL` and `SITE_BASE` (read in `astro.config.mjs`) for the subfolder, and `NOINDEX` (an `astro:env` variable), which adds `<meta name="robots" content="noindex">`. Local builds keep the defaults: served from `/`, indexable, `site` still the placeholder.
+
+## Live deploy
+
+- `pnpm deploy:live` runs `scripts/deploy.sh`: it builds with the real content, then mirrors `dist/` to the host with `lftp` (dry run, confirmation, then upload with `--delete`).
+- Host settings (`DEPLOY_URL`, `DEPLOY_PATH`, `SITE_URL`) come from `.env` in the content repo, never from this one. It's gitignored there too; `.env.example` is the template. Passwords come from an SSH key (SFTP) or `~/.netrc` (FTPS).
+- SFTP or FTP over TLS only: the script forces TLS, so plain FTP fails.
 
 ## License
 
@@ -150,7 +158,10 @@ pnpm is the package manager. Node >= 22.23.4.
 
 ```sh
 pnpm install
-pnpm build         # static build to dist/
+pnpm build         # static build to dist/, placeholder content
+pnpm build:live    # static build with the real content (../nikolaidot.com-content)
+pnpm dev:live      # dev server with the real content
+pnpm deploy:live   # build with the real content and upload (see "Live deploy")
 pnpm preview       # serve the built site
 pnpm format        # prettier --write .
 pnpm format:check  # prettier --check .
