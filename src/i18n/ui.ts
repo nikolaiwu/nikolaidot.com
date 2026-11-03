@@ -19,6 +19,7 @@ const en = {
   "site.description":
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.",
   "skip.link": "Skip to content",
+  "sample.label": "Sample content",
   "nav.label": "Main",
   "nav.work": "Work",
   "nav.about": "About",
@@ -90,6 +91,7 @@ const bg: typeof en = {
   "site.description":
     "Лорем ипсум долор сит амет, консектетур адиписцинг елит, сед до еиусмод темпор.",
   "skip.link": "Към съдържанието",
+  "sample.label": "Примерно съдържание",
   "nav.label": "Основна",
   "nav.work": "Проекти",
   "nav.about": "За мен",

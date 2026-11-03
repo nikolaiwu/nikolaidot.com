@@ -1,0 +1,29 @@
+---
+import { useTranslations, type Lang } from "../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+
+const t = useTranslations(Astro.props.lang);
+---
+
+<p class="label">{t("sample.label")}</p>
+
+<style>
+  /* Fills the gap above the header bar, so it covers nothing. */
+  p {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    block-size: var(--header-gap);
+    padding-inline: var(--space-2xs);
+    line-height: 1;
+    color: var(--color-background);
+    background: var(--color-accent);
+    view-transition-name: sample-notice;
+  }
+</style>

@@ -14,6 +14,12 @@ export default defineConfig({
         access: "public",
         default: false,
       }),
+      // Set by the :live scripts. Without it, the site shows sample content.
+      CONTENT_DIR: envField.string({
+        context: "server",
+        access: "public",
+        optional: true,
+      }),
     },
   },
   i18n: {

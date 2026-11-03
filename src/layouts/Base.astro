@@ -1,9 +1,10 @@
 ---
 import { Font } from "astro:assets";
-import { NOINDEX } from "astro:env/server";
+import { CONTENT_DIR, NOINDEX } from "astro:env/server";
 import { getAbsoluteLocaleUrl } from "astro:i18n";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
+import SampleNotice from "../components/SampleNotice.astro";
 import { getLocalePath } from "../i18n/paths";
 import {
   defaultLang,
@@ -75,6 +76,7 @@ const preload = (weight: number) =>
     <a class="skip-link" href="#main">
       {t("skip.link")}
     </a>
+    {!CONTENT_DIR && <SampleNotice lang={lang} />}
     <Header lang={lang} translated={translated} />
     <main id="main">
       <slot />
