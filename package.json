@@ -11,6 +11,7 @@
     "dev:live": "CONTENT_DIR=../nikolaidot.com-content astro dev",
     "build": "astro build",
     "build:live": "CONTENT_DIR=../nikolaidot.com-content astro build",
+    "deploy:live": "sh scripts/deploy.sh",
     "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write .",
