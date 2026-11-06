@@ -1,12 +1,20 @@
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+My career started way back in 2009. Still young, I was learning PHP and MySQL and needed a project to get me a job, so I built a blog with basic CRUD. I learned a lot about programming fundamentals, but the site was so ugly I couldn't bring myself to show it at interviews, so I dug into CSS. That's when I fell in love with it and decided to apply as a web designer instead of a back-end developer (the term front-end hadn't really caught on yet). I started at MetaVisia, where I found out how much I didn't know about the web and how vast a programmer's world is. To the people who gave me a chance to grow back then: thank you!
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Over the years I've gone through plenty of technologies, from jQuery and WordPress, through Angular and Vue, to React and Next.js today, and I've worked with exceptionally talented developers and designers. The tools keep changing. What stays is the ability to understand a problem and explain it to the people around you.
+
+I've built all sorts of things: a dental clinic's site from the first sketch to the last line of code, a landing page for a Web3 startup, the front-end of a trading platform, a tool for professional gamers and a white-label appliance repair platform.
+
+Because I started as a designer, I still don't see an interface as just code. I want it to be fast, accessible and pleasant to use, not merely working. I'm involved along the whole path of a product: architecture, design systems, code review, testing and release, side by side with the people from product, design and back-end.
+
+And CSS stayed my first love. In 2026 I created LunarCSS, an open-source classless theme that styles every standard HTML element, because style shouldn't come at the expense of semantics.
 
 ## How I work
 
-- **Sed ut perspiciatis.** Unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.
-- **Nemo enim ipsam.** Voluptatem quia voluptas sit aspernatur aut odit aut fugit.
-- **Neque porro quisquam.** Est, qui dolorem ipsum quia dolor sit amet, consectetur.
+- **Team.** Most of what I know I've learned from the people I've worked with, and I'm still learning. I'd rather ask a silly question early than pretend I've got it all figured out.
+- **Speed.** I don't like waiting, and I'm guessing you don't either. So optimization starts with choosing the technology and carries on after the release.
+- **Modern design.** I'm with Dieter Rams: good design is as little design as possible. Innovative, but not for its own sake. Good-looking, but useful too. And above all, out of your way.
+- **Accessibility.** A site should work for everyone, not just people with a new laptop and perfect eyesight. Keyboard navigation, proper contrast and animations that respect your device settings.
+- **AI.** I work with AI agents every day: I give them the right context, write clear prompts and check every result, because the responsibility stays mine.
 
 ## Experience
 

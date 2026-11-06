@@ -58,6 +58,8 @@ export const en = {
   "about.kicker": "Profile",
   "about.cv": "Download CV (PDF)",
   "about.stack": "Stack",
+  "about.closing":
+    "If you've read this far, we probably have something to talk about.",
   "stack.languages": "Languages and frameworks",
   "stack.styling": "Styling and UI",
   "stack.practices": "Engineering practices",

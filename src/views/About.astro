@@ -50,6 +50,8 @@ const stackGroups = getStack(t);
           </ul>
         </>
       ))}
+
+      <p class="closing">{t("about.closing")}</p>
     </div>
 
     <!-- The spec sheet as an ID card, with the CV under it. -->
@@ -91,6 +93,11 @@ const stackGroups = getStack(t);
 
   .prose .stack :global(.icon) {
     font-size: 1.25em;
+  }
+
+  .prose .closing {
+    margin-block-start: var(--space-2xl);
+    font-weight: 700;
   }
 
   .card {

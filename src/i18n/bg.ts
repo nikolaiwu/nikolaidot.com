@@ -61,6 +61,8 @@ export const bg: typeof en = {
   "about.kicker": "Профил",
   "about.cv": "Изтеглете CV (PDF, на английски)",
   "about.stack": "Технологии",
+  "about.closing":
+    "Щом сте стигнали дотук, явно имаме за какво да си поговорим.",
   "stack.languages": "Езици и фреймуърци",
   "stack.styling": "Стилове и UI",
   "stack.practices": "Инженерни практики",
