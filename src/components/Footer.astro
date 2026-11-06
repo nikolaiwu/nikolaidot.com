@@ -1,5 +1,5 @@
 ---
-import { email, profiles } from "../data/contact";
+import { email, mailto, profiles } from "../data/contact";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Barcode from "./Barcode.astro";
 import Dither from "./Dither.astro";
@@ -44,7 +44,7 @@ const stairsCols = 40;
         <div>
           <dt class="label">{t("contact.email")}</dt>
           <dd>
-            <a href={`mailto:${email}`}>{email}</a>
+            <a href={mailto(t("contact.subject"))}>{email}</a>
           </dd>
         </div>
         <div>

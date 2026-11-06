@@ -7,7 +7,7 @@ import SectionHead from "../components/SectionHead.astro";
 import SpecSheet from "../components/SpecSheet.astro";
 import WorkGrid from "../components/WorkGrid.astro";
 import Years from "../components/Years.astro";
-import { email } from "../data/contact";
+import { mailto } from "../data/contact";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Base from "../layouts/Base.astro";
 import { pixelText } from "../lib/pixel-font";
@@ -88,7 +88,7 @@ const stats = [
       <div class="body">
         <h2 id="cta-title">{t("home.contactTitle")}</h2>
         <p>{t("home.contactText")}</p>
-        <PillLink href={`mailto:${email}`} solid>
+        <PillLink href={mailto(t("contact.subject"))} solid>
           {t("home.contactLink")}
         </PillLink>
       </div>
