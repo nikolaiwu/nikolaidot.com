@@ -1,8 +1,18 @@
 ---
 import { yearsOfExperience } from "../data/career";
+
+interface Props {
+  /** Text with a `{years}` placeholder; without it, only the number renders. */
+  text?: string;
+}
+
+const { text = "{years}" } = Astro.props;
+const [before, after] = text.split("{years}");
 ---
 
+{before}
 <span data-years>{yearsOfExperience()}</span>
+{after}
 
 <script>
   import { yearsOfExperience } from "../data/career";

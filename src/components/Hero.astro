@@ -15,7 +15,6 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
-const [beforeYears, afterYears] = t("hero.text").split("{years}");
 
 // Hotspots in the dot grid, placed clear of the tag, figure and asterisk.
 // Each one retitles the figure with its word; the first word is the resting one.
@@ -142,9 +141,7 @@ const toPath = ([x0, y0, x1, y1, x2, y2, x3, y3]: number[]) =>
     <div class="copy">
       <h1 id="hero-title">{t("hero.title")}</h1>
       <p>
-        {beforeYears}
-        <Years />
-        {afterYears}
+        <Years text={t("hero.text")} />
       </p>
       <a class="label" href={getRelativeLocaleUrl(lang, "work")}>
         {t("hero.link")} <Arrow direction="down" />
