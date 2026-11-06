@@ -263,18 +263,21 @@ const toPath = ([x0, y0, x1, y1, x2, y2, x3, y3]: number[]) =>
     inset-inline-start: var(--space-m);
     display: grid;
     place-items: center;
-    inline-size: var(--space-2xl);
+    inline-size: var(--space-xl);
     aspect-ratio: 1;
-    font-size: var(--text-2xl);
+    font-size: var(--text-xl);
     line-height: 1;
-    color: var(--color-background);
-    background: var(--color-accent);
-    border: 0;
+    color: var(--color-accent);
+    background: var(--color-background);
+    border: 2px solid var(--color-muted);
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition:
+      background-color 0.2s,
+      border-color 1.2s;
 
     &:hover {
       background: var(--color-foreground);
+      border-color: var(--color-accent);
     }
   }
 
@@ -283,7 +286,7 @@ const toPath = ([x0, y0, x1, y1, x2, y2, x3, y3]: number[]) =>
   }
 
   .asterisk:active span {
-    scale: 0.8;
+    scale: 0.75;
   }
 
   .figure {
