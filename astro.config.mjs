@@ -4,7 +4,7 @@ import { defineConfig, envField, fontProviders } from "astro/config";
 // https://astro.build/config
 export default defineConfig({
   // Overridden by the GitHub Pages preview build, served from a subfolder.
-  site: process.env.SITE_URL ?? "https://example.com",
+  site: process.env.SITE_URL ?? "https://nikolaidot.com",
   base: process.env.SITE_BASE,
   env: {
     schema: {
