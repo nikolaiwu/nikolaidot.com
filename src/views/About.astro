@@ -1,9 +1,12 @@
 ---
 import * as bg from "../content/about/bg.md";
 import * as en from "../content/about/en.md";
+import Icon from "../components/Icon.astro";
 import PageHeader from "../components/PageHeader.astro";
 import PillLink from "../components/PillLink.astro";
 import SpecSheet from "../components/SpecSheet.astro";
+import Years from "../components/Years.astro";
+import { getStack } from "../data/stack";
 import { useTranslations, type Lang } from "../i18n/ui";
 import Base from "../layouts/Base.astro";
 import { publicUrl } from "../lib/base";
@@ -18,16 +21,35 @@ const t = useTranslations(lang);
 const { Content } = { en, bg }[lang];
 const work = await getWork(lang);
 const stack = [...new Set(work.flatMap(({ data }) => data.stack))];
+const stackGroups = getStack(t);
 ---
 
 <Base lang={lang} title={t("about.title")}>
   <PageHeader kicker={t("about.kicker")} title={t("about.title")}>
-    <p>{t("hero.text")}</p>
+    <p>
+      <Years text={t("hero.text")} />
+    </p>
   </PageHeader>
 
   <div class="container grid">
     <div class="prose">
       <Content />
+
+      <!-- Inside .prose, so it continues the numbered sections. -->
+      <h2>{t("about.stack")}</h2>
+      {stackGroups.map(({ title, items }) => (
+        <>
+          <h3 class="label">{title}</h3>
+          <ul class="stack">
+            {items.map(({ icon, label }) => (
+              <li>
+                <Icon name={icon} />
+                {label}
+              </li>
+            ))}
+          </ul>
+        </>
+      ))}
     </div>
 
     <!-- The spec sheet as an ID card, with the CV under it. -->
@@ -46,6 +68,31 @@ const stack = [...new Set(work.flatMap(({ data }) => data.stack))];
 </Base>
 
 <style>
+  .prose h3.label {
+    color: var(--color-muted);
+  }
+
+  .prose .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-m);
+  }
+
+  .prose .stack li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding-inline-start: 0;
+
+    &::before {
+      content: none;
+    }
+  }
+
+  .prose .stack :global(.icon) {
+    font-size: 1.25em;
+  }
+
   .card {
     display: grid;
     justify-items: start;
