@@ -39,7 +39,7 @@ const monogram = t("site.name")
 
   <p class="credit">
     <span>{t("spec.credit")}</span>
-    <span>© {year}</span>
+    <span class="year">© {year}</span>
   </p>
 
   <div class="bar">
@@ -112,10 +112,15 @@ const monogram = t("site.name")
   .credit {
     display: flex;
     justify-content: space-between;
+    gap: var(--space-s);
     padding-block-start: var(--space-xs);
     border-block-start: 2px solid currentColor;
     background: radial-gradient(circle, currentColor 1px, transparent 1.5px) 0
       4px / 6px 6px repeat-x;
+  }
+
+  .credit .year {
+    white-space: nowrap;
   }
 
   .bar {
