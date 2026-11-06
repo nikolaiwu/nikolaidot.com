@@ -84,13 +84,14 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - English (`en`, default) is unprefixed and Bulgarian (`bg`) lives under `/bg/`, through Astro's i18n routing. No fallbacks.
 - Page files are thin per-locale wrappers: `src/pages/about.astro` and `src/pages/bg/about.astro` both render `<About lang="…" />` from `src/views/`. Case study routes call `getWorkPaths(lang)` from `src/lib/work.ts`.
 - Every page renders inside `src/layouts/Base.astro` (`<html lang>`, head, skip link, header, footer). Case studies use `src/layouts/CaseStudy.astro`.
-- UI strings live in `src/i18n/ui.ts`; `bg` must have every key `en` has. Get them with `const t = useTranslations(lang)`.
+- UI strings live in one dictionary per locale, `src/i18n/en.ts` and `src/i18n/bg.ts`. `bg` is typed as `typeof en`, so it must have every key `en` has. `src/i18n/ui.ts` holds the locale list and helpers; get strings with `const t = useTranslations(lang)`.
 - Build internal links with `getRelativeLocaleUrl(lang, path)` from `astro:i18n`, never by hand. Link to files in `public/` with `publicUrl()` from `src/lib/base.ts`. Both respect `base`, so the site also works from a subfolder.
 - The language switcher links to the same path in the other locale. Pass `translated={false}` to `Base` on pages without a translation; that also drops the `hreflang` alternates.
-- `Base` renders `hreflang` alternates (each locale plus `x-default` → English), `og:locale` and `og:locale:alternate` (codes in `ogLocales` in `ui.ts`). Absolute URLs come from `site` in `astro.config.mjs`, a placeholder until the domain is set.
+- `Base` renders `hreflang` alternates (each locale plus `x-default` → English), `og:locale` and `og:locale:alternate` (codes in `ogLocales` in `ui.ts`). Absolute URLs come from `site` in `astro.config.mjs`.
 - Longer page copy is Markdown, one file per locale (About: `src/content/about/{en,bg}.md`).
+- The About stack is data, not Markdown: `getStack(t)` in `src/data/stack.ts`, grouped as in the CV, with an `Icon` per item. `About` renders it after the Markdown, inside `.prose`, so it continues the numbered sections.
 - Contact details are in `src/data/contact.ts`, and the contact section is in the footer (`#contact`).
-- Years of experience come from `yearsOfExperience()` in `src/data/career.ts` (from August 2009). Render them with `<Years />`: counted at build time, then recounted in the browser, so the number stays current between deploys. In `ui.ts` strings, `{years}` marks where it goes. Don't hard-code the number.
+- Years of experience come from `yearsOfExperience()` in `src/data/career.ts` (from August 2009). Render them with `<Years />`: counted at build time, then recounted in the browser, so the number stays current between deploys. In UI strings, `{years}` marks where it goes; render such a string with `<Years text={t(key)} />`, never with `t()` alone. Don't hard-code the number.
 - `public/` holds only the public CV (`cv-…-p.pdf`, `-p` for public): no phone number and no personal email. Before committing a new one, check its text, links and metadata.
 
 ## Dot grid
@@ -124,6 +125,7 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 - `SectionHead` is a section title with the striped rule and an optional `slot="action"`. `sticky` sticks it below the header (from `64rem`), with a rule drawn along its edge while stuck, through a `scroll-state` container query. Browsers without support skip the rule.
 - `PillLink` is the pill-shaped link (`solid`, `arrow` direction). `Arrow` is the one arrow icon, rotated for `back` and `down`, sized with `--arrow-size` and `--arrow-stroke`. Arrows go only in interactive elements.
 - `Icon` holds brand marks from Simple Icons (CC0) and line icons from Lucide (ISC). Without `label` it's decorative; with one it's announced and shows a tooltip.
+- Each icon is a single path. Lucide icons are flattened: circles, rects and lines become path commands, and a leading relative `m` becomes absolute (`m18 19 1-7` → `M18 19l1-7`), or the joined subpaths drift.
 - `ScrambleText` retypes its text through random glyphs (the `text` property), instantly under reduced motion.
 - `WorkGrid` lays out work cards in alternating 7/5 and 5/7 rows; `WorkCard` and `SpecSheet` are the card and the spec-sheet aside.
 
@@ -142,7 +144,7 @@ Messages follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org
 ## Preview deploy
 
 - `.github/workflows/deploy.yml` publishes a preview to GitHub Pages (`https://nikolaiwu.github.io/nikolaidot.com/`) on every push to `main`.
-- The workflow sets `SITE_URL` and `SITE_BASE` (read in `astro.config.mjs`) for the subfolder, and `NOINDEX` (an `astro:env` variable), which adds `<meta name="robots" content="noindex">`. Local builds keep the defaults: served from `/`, indexable, `site` still the placeholder.
+- The workflow sets `SITE_URL` and `SITE_BASE` (read in `astro.config.mjs`) for the subfolder, and `NOINDEX` (an `astro:env` variable), which adds `<meta name="robots" content="noindex">`. Local builds keep the defaults: served from `/`, indexable, `site` set to `https://nikolaidot.com`.
 
 ## Live deploy
 
