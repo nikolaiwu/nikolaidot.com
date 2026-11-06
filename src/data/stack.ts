@@ -56,7 +56,7 @@ export const getStack = (t: T) =>
     {
       title: t("stack.ai"),
       items: [
-        { icon: "claude", label: "Claude" },
+        { icon: "claude", label: "Claude Code" },
         { icon: "copilot", label: "GitHub Copilot" },
         { icon: "cursor", label: "Cursor" },
       ],
