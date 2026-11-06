@@ -20,6 +20,7 @@ Before any commit, check for and flag:
 - **Local and draft files.** `*.local.md` and `drafts/` are gitignored and must stay out. Run `git status` before the first commit and after changing `.gitignore`.
 - **Secrets.** No `.env` files, API keys or tokens. Analytics site IDs are fine.
 - **Personal data.** Commits use the GitHub noreply email, not a personal address. Nothing from the private list in `PLAN.local.md`.
+- **Site copy.** About copy (`src/content/about/`) and UI strings are real text in a public repo. Check them against the private list and content rules in `PLAN.local.md`, and hold back anything risky until it's resolved.
 - **Commit messages.** Follow the conventions below.
 
 ## Commits
